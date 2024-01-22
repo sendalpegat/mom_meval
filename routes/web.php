@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MeetingController;
-
+use App\Http\Controllers\TaskController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -20,8 +20,16 @@ Route::get('/', [LoginController::class, 'login'])->name('login');
 Route::get('login', [LoginController::class, 'login'])->name('login');
 Route::post('actionlogin', [LoginController::class, 'actionlogin'])->name('actionlogin');
 
-Route::get('home', [HomeController::class, 'index'])->name('home')->middleware('auth');
 Route::get('actionlogout', [LoginController::class, 'actionlogout'])->name('actionlogout')->middleware('auth');
+
+Route::post('meeting/add', [MeetingController::class, 'store'])->name('meeting/add')->middleware('auth');
+// updates a meeting
+Route::post('/meeting/edit', [MeetingController::class ,'update'])->name('meeting/edit')->middleware('auth');
+// deletes a meeting
+Route::post('/meeting/delete', [MeetingController::class ,'delete'])->name('meeting/delete')->middleware('auth');
+
+Route::get('meeting/{post}/update', MeetingController::class .'@show')->name('meeting/update')->middleware('auth');
 Route::get('meeting', [MeetingController::class, 'index'])->name('meeting')->middleware('auth');
+Route::get('meeting/tasks', [TaskController::class, 'index'])->name('meeting/tasks')->middleware('auth');
+Route::post('/meeting/tasks/update', [TaskController::class ,'updateStatus'])->name('meeting/tasks/update')->middleware('auth');
 Route::get('meeting/create', [MeetingController::class, 'create'])->name('meeting/create')->middleware('auth');
-Route::get('meeting/tasks', [MeetingController::class, 'showTasks'])->name('meeting/tasks')->middleware('auth');

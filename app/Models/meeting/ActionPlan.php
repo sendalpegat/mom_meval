@@ -2,6 +2,7 @@
 
 namespace App\Models\meeting;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -43,4 +44,20 @@ class ActionPlan extends Model
     protected $casts = [
         'due_date'=> 'datetime:Y-m-d',
       ];
+
+    public static function getStatusName($status)
+    {
+      $nameStatus = "Unknown";
+      switch ($status)
+      {
+        case self::STATUS_ON_PROGRESS :
+          $nameStatus = "On Progress";
+          break;
+        case self::STATUS_DONE :
+          $nameStatus = "Done";
+          break;
+      }
+
+      return $nameStatus;
+    }  
 }

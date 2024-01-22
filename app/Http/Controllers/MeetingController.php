@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\meeting\Meeting;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class MeetingController extends Controller
 {
@@ -14,9 +16,16 @@ class MeetingController extends Controller
     const VIEW_MODE_ADD = 0;
     const VIEW_MODE_UPDATE = 1;
     /** show view list of meeting */
-    public function index()
+    public function index(Request $request)
     {
-        return view('meeting.list_meeting');
+        $meetings = Meeting::query()->paginate(5);
+        $query = Meeting::query();
+        if ($request->seachTerm != '')
+        {
+            $query = $query->where('topic', 'like', '%'.$request->seachTerm.'%');
+        }
+        $meetings = $query->paginate(5);
+        return view('meeting.list_meeting', compact('meetings'))->render();
     }
 
     /** save meeting to database
@@ -26,40 +35,91 @@ class MeetingController extends Controller
     {
         $res = "failed";
         $msg = "Failed saving";
+        DB::beginTransaction();
         try 
         {
             
             $request->validate([
-                'title' => 'required|max:255',
-                'body' => 'required',
+                'topic' => 'required',
+                'location' => 'required',
+                'partisipans' => 'required',
+                'listPointDiscusseds' => 'required',
+                'listTask'=>'required'
             ]);
         
             // generate id
             $prefix = $year = date("Ymd");
             $momId = $this->generateId(self::OBJECT_NAME,$prefix);
 
-            $meeting = array("topic"=> $request->get('topic',''),
-                            "agenda"=> $request->get('agenda',''),
+            $meeting = array(
+                            "mom_id" => $momId,
+                            "topic"=> $request->get('topic',''),
                             "location" => $request->get('location',''),
-                            "mom_date"=> $request->get('mom_date'),
-                            "start_time"=> $request->get('start_time'),
-                            "end_time"=> $request->get('end_time'),
+                            "mom_date"=> $request->get('momDate'),
+                            "start_time"=> $request->get('startTime'),
+                            "end_time"=> $request->get('endTime'),
                             "duration"=> $request->get('duration'),
-                            "note"=>$request->get('note',''),
-                            "updated_by" => $request->get('updated_by'));
+                            "updated_by" => Auth::user()->email);
 
-            //save to database                
+            //save meeting to database                
             Meeting::create($meeting);
+
+            //save point discussed
+            foreach ($request->get('listPointDiscusseds') as $point) 
+            {
+                DB::table('mom_point_discussed')->insert(
+                    array('mom_id' => $momId,
+                          'line_number' => $point["lineNumber"],
+                          'remark' => $point["remark"],
+                          'rate' => $point["rate"])
+                );
+            }
+
+            //save task
+            foreach ($request->get('listTask') as $task) 
+            {
+                DB::table('mom_action_plan')->insert(
+                    array('mom_id' => $momId,
+                          'point_discussed_index' => $task["index"],
+                          'line_number' => $task["lineNumber"],
+                          'note' => $task["notes"],
+                          'due_date' => $task["dueDate"],
+                          'pic' => $task["pic"])
+                );
+            }
+
+            //save participants
+            $partisipants = $request->get('partisipans');
+            $countPartisipants = count($request->get('partisipans'));
+            for ($i = 0; $i < $countPartisipants; $i++) 
+            {
+                DB::table('mom_participants')->insert(
+                    array('mom_id' => $momId,
+                          'email' => $partisipants[$i])
+                );
+            }
 
             $res = "success";
             $msg = 'Meeting saved successfully.';
 
+            DB::commit();
+
+            redirect('meeting');
+            return $response = [
+                'status'=>'ok',
+                'success'=>true,
+                'message'=>'Saved successfull'
+            ];
+
         }catch (Exception $e) {
+            DB::rollback();
             Log::error($e->getMessage());
+            $response = [
+                'status'=>'ok',
+                'success'=>false,
+                'message'=>'Saved fail'
+            ];
         }
-        
-        return redirect()->route('meeting.index')
-            ->with($res, $msg);
     }
 
     private function generateId($objectName,$prefix='')
@@ -71,26 +131,26 @@ class MeetingController extends Controller
             ->select('counter')
             ->where($filter)
             ->get();
-
-        if (!empty($result))
+             
+        if (count($result) == 0)
         {
-            $id = $id + 1;
-            //update counter
-            DB::table('core_counter')->where($filter)
-            ->update(['counter' =>DB::raw($id)]);
+            //add counter
+            DB::table('core_counter')->insert(
+                array('object' => $objectName,
+                      'prefix' => $prefix,
+                      'counter' => $id)
+            );
         }
         else
         {
+            $id = $result[0]->counter + 1;
+            
             //update counter
-            DB::table('core_counter')->insert(
-                array('object' => $objectName,
-                      'prefix' => 'john',
-                      'counter' => 'doe')
-            );
-
+            DB::table('core_counter')->where($filter)->update(['counter' =>DB::raw($id)]);
         }
 
-        return $id;
+        $formid = $prefix.''.$id;
+        return $formid;
     }
 
      /**
@@ -100,8 +160,9 @@ class MeetingController extends Controller
      */
     public function create()
     {
-        //$users = User::where('status', 1)->orderBy('name')->lists('name', 'id');
-        $data = array("viewMode" => self::VIEW_MODE_ADD);
+        $users = User::all();
+        $data = array("viewMode" => self::VIEW_MODE_ADD, "users"=>$users);
+        
         return view('meeting.editor', compact('data'));
     }
 
@@ -110,7 +171,30 @@ class MeetingController extends Controller
      */
     public function show($id)
     {
-        $data = array("viewMode" => self::VIEW_MODE_UPDATE);
+        $users = User::all();
+        $meeting = Meeting::find($id);
+
+        //participants
+        $participants = DB::table('mom_participants')
+        ->select('email')
+        ->where("mom_id", $id)
+        ->get();
+
+        //get point discuss
+        $pointDiscuss = DB::table('mom_point_discussed')
+            ->select('*')
+            ->where("mom_id", $id)
+            ->get();
+
+        //get task
+        $tasks = DB::table('mom_action_plan')
+            ->leftJoin('core_user', 'mom_action_plan.pic', '=', 'core_user.email')
+            ->where("mom_id", $id)
+            ->get();
+        $data = array("viewMode" => self::VIEW_MODE_UPDATE, "users"=>$users, 
+                "meeting"=>$meeting, "pointDiscuss"=> $pointDiscuss,
+                "participants"=>$participants,"tasks"=>$tasks);
+
         return view('meeting.editor', compact('data'));
     }
 
@@ -118,22 +202,135 @@ class MeetingController extends Controller
      * Update the meeting
      * @param request 
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
+        $id = $request->get('id','');
+        $res = "failed";
+        $msg = "Failed saving";
+        DB::beginTransaction();
+        try 
+        {
+            //save meeting to database
+            $meeting = Meeting::find($id);
+            $meeting->topic= $request->get('topic','');
+            $meeting->location = $request->get('location','');
+            $meeting->mom_date = $request->get('momDate');
+            $meeting->start_time = $request->get('startTime');
+            $meeting->end_time = $request->get('endTime');
+            $meeting->duration = $request->get('duration');
+            $meeting->updated_by = Auth::user()->email;
+            $meeting->update();                
 
+            //delete mom discussed first
+            DB::table("mom_point_discussed")->where("mom_id",$id)->delete();
+
+            //save point discussed
+            foreach ($request->get('listPointDiscusseds') as $point) 
+            {
+                DB::table('mom_point_discussed')->insert(
+                    array('mom_id' => $id,
+                          'line_number' => $point["lineNumber"],
+                          'remark' => $point["remark"],
+                          'rate' => $point["rate"])
+                );
+            }
+
+            //delete mom action plan first
+            DB::table("mom_action_plan")->where("mom_id",$id)->delete();
+
+            //save task
+            foreach ($request->get('listTask') as $task) 
+            {
+                DB::table('mom_action_plan')->insert(
+                    array('mom_id' => $id,
+                          'point_discussed_index' => $task["index"],
+                          'line_number' => $task["lineNumber"],
+                          'note' => $task["notes"],
+                          'due_date' => $task["dueDate"],
+                          'pic' => $task["pic"])
+                );
+            }
+
+            //save participants
+            $partisipants = $request->get('partisipans');
+            $countPartisipants = count($request->get('partisipans'));
+            for ($i = 0; $i < $countPartisipants; $i++) 
+            {
+                DB::table('mom_participants')->insert(
+                    array('mom_id' => $id,
+                          'email' => $partisipants[$i])
+                );
+            }
+
+            $res = "success";
+            $msg = 'Meeting saved successfully.';
+
+            DB::commit();
+
+            return $response = [
+                'status'=>'ok',
+                'success'=>true,
+                'message'=>'Saved successfull'
+            ];
+
+        }catch (Exception $e) {
+            DB::rollback();
+            Log::error($e->getMessage());
+            $response = [
+                'status'=>'ok',
+                'success'=>false,
+                'message'=>'Saved fail'
+            ];
+        }
     }
 
     /**
      * Delete the meeting 
      * @param id the id of meeting
      */
-    public function destroy($id)
+    public function delete(Request $request)
     {
+        $id = $request->id;
+        DB::beginTransaction();
+        try 
+        {
+            //delete mom discussed first
+            DB::table("mom_point_discussed")->where("mom_id",$id)->delete();
 
-    }
+            //delete mom action plan first
+            DB::table("mom_action_plan")->where("mom_id",$id)->delete();
 
-    public function showTasks()
-    {
-        return view('meeting.list_task');
+            $delete =  Meeting::destroy($id);
+            if ($delete)
+            {
+                
+                DB::commit();
+
+                return $response = [
+                    'status'=>'ok',
+                    'success'=>true,
+                    'message'=>'Deleted successfull'
+                ];
+            }
+            else
+            {
+                DB::rollback();
+
+                return $response = [
+                    'status'=>'ok',
+                    'success'=>false,
+                    'message'=>'Deleted fail'
+                ];
+            }            
+
+        }catch (Exception $e) {
+            DB::rollback();
+            Log::error($e->getMessage());
+            $response = [
+                'status'=>'ok',
+                'success'=>false,
+                'message'=>'Deleted fail'
+            ];
+        }
     }
 }
