@@ -12,6 +12,10 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
     
+    /** Status user. ACTIVE */
+    const ACTIVE = 1;
+    /** Status user. INACTIVE */
+    const INACTIVE = 0;
 
     /**
      * The database table used by the model.

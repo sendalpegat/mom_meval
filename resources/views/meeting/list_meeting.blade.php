@@ -21,10 +21,10 @@
     <table class="table table-striped table-bordered">
      <thead>
       <tr>
-       <th width="40%" class="sorting" data-sorting_type="asc" data-column_name="id" style="cursor: pointer">Topic <span id="id_icon"></span></th>
-       <th width="20%" class="sorting" data-sorting_type="asc" data-column_name="name" style="cursor: pointer">Location <span id="post_title_icon"></span></th>
-       <th width="10%">Date</th>
-       <th width="10%">Action</th>
+       <th width="45%" class="sorting" data-sorting_type="asc" data-column_name="id" style="cursor: pointer">Topic <span id="id_icon"></span></th>
+       <th width="18%" class="sorting" data-sorting_type="asc" data-column_name="name" style="cursor: pointer">Location <span id="post_title_icon"></span></th>
+       <th width="12%">Date</th>
+       <th width="5%">Action</th>
       </tr>
      </thead>
      <tbody>

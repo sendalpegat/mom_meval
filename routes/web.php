@@ -5,6 +5,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\UserController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -19,8 +20,9 @@ use App\Http\Controllers\TaskController;
 Route::get('/', [LoginController::class, 'login'])->name('login');
 Route::get('login', [LoginController::class, 'login'])->name('login');
 Route::post('actionlogin', [LoginController::class, 'actionlogin'])->name('actionlogin');
-
 Route::get('actionlogout', [LoginController::class, 'actionlogout'])->name('actionlogout')->middleware('auth');
+
+Route::get('user/sync-odoo', [UserController::class, 'syncOdoo'])->name('user/sync-odoo')->middleware('auth');
 
 Route::post('meeting/add', [MeetingController::class, 'store'])->name('meeting/add')->middleware('auth');
 // updates a meeting

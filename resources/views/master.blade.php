@@ -49,7 +49,7 @@ $.ajaxSetup({
                             <i class="fs-4 bi bi-journal-check"></i> <span class="ms-1 d-none d-sm-inline">Action Plan</span></a>
                     </li>
                     <li>
-                        <a href="#submenu2" data-bs-toggle="collapse" class="nav-link px-0 align-middle ">
+                        <a href="javascript:syncUser()" class="nav-link px-0 align-middle ">
                             <i class="fs-4 bi bi-person-down"></i> <span class="ms-1 d-none d-sm-inline">Sync User Odoo</span></a>
                     </li>
                     
@@ -73,6 +73,47 @@ $.ajaxSetup({
     </div>
 </div>
 
+<div class="modal" id="loadingModal" role="dialog" data-bs-focus="false" data-bs-keyboard="false" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Synchron user from Odoo</h5>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+            Please Wait
+            <div class="spinner-grow spinner-grow-sm text-info"></div>
+            <div class="spinner-grow spinner-grow-sm text-info"></div>
+            <div class="spinner-grow spinner-grow-sm text-info"></div>
+        </div>
+        
+      </div>
+      
+    </div>
+  </div>
 </body>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script> 
+    function syncUser()
+    {
+        $('#loadingModal').modal('show');
+        $.ajax({
+            type: 'GET',
+            url: "{{ url('user/sync-odoo') }}",
+            success: function(response) {
+                $('#loadingModal').modal('hide');
+                alert(response.message);
+            },
+            error: function(response){
+                $('#loadingModal').modal('hide');
+                alert(response.message);
+                
+            }
+
+        });
+
+    }
+
+</script>
 </html>

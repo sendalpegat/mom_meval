@@ -24,7 +24,8 @@ class MeetingController extends Controller
         {
             $query = $query->where('topic', 'like', '%'.$request->seachTerm.'%');
         }
-        $meetings = $query->paginate(5);
+
+        $meetings = $query->orderBy('created_at', 'asc')->paginate(5);
         return view('meeting.list_meeting', compact('meetings'))->render();
     }
 
