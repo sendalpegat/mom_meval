@@ -1,12 +1,12 @@
 @extends('master')
 
 @section('content')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 var stars =  document.getElementsByClassName("star");
 let counter = 0;
     $(document).ready(function () {
         // add row for point discussed table
-        
         $("#addrow").on("click", function () {
             var no = counter +2;
             var newRow = $('<tr>');
@@ -706,7 +706,7 @@ for ($i = 0; $i < count($tasks); $i++)
       
     </div>
   </div>
-   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+   
 
 <script>
     //set area as text rich
@@ -719,10 +719,10 @@ for ($i = 0; $i < count($tasks); $i++)
         console.error( error );
     } );
 
-    $(function(){
-  $("#picSelect").select2({
-    dropdownParent: $("#myModal")
-  });
- }); 
+//     $(function(){
+//   $("#picSelect").select2({
+//     dropdownParent: $("#myModal")
+//   });
+//  }); 
 </script>
 @endsection

@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\meeting\Meeting;
+
 use Illuminate\Support\Facades\DB;
-use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use App\Models\meeting\Meeting;
+use App\Models\meeting\ActionPlan;
+use App\Models\User;
+use App\Http\Controllers\TaskController;
+
 
 class MeetingController extends Controller
 {
@@ -18,15 +22,23 @@ class MeetingController extends Controller
     /** show view list of meeting */
     public function index(Request $request)
     {
-        $meetings = Meeting::query()->paginate(5);
+        //get the task that already done and still on progress
+        $task = (new TaskController)->getTotalTaskComplateAndUncomplate();
+
+        //get the list of meeting
         $query = Meeting::query();
         if ($request->seachTerm != '')
         {
             $query = $query->where('topic', 'like', '%'.$request->seachTerm.'%');
         }
 
-        $meetings = $query->orderBy('created_at', 'asc')->paginate(5);
-        return view('meeting.list_meeting', compact('meetings'))->render();
+
+        $meetings = $query->select('mom_meeting.*','core_user.name')
+        ->leftjoin('core_user','core_user.email','=','mom_meeting.updated_by')
+        ->orderBy('created_at', 'asc')->paginate(10);
+
+        $data = array ("meetings"=>$meetings, "task"=>$task);
+        return view('meeting.list_meeting', compact('data'))->render();
     }
 
     /** save meeting to database

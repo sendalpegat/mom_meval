@@ -16,6 +16,12 @@ class User extends Authenticatable
     const ACTIVE = 1;
     /** Status user. INACTIVE */
     const INACTIVE = 0;
+    /** Role user. USER */
+    const USER = 0;
+    /** Role user. MANAGER */
+    const MANAGER = 1;
+    /** Role user. ADMIN */
+    const ADMIN = 9;
 
     /**
      * The database table used by the model.

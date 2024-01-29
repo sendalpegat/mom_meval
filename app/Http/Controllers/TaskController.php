@@ -66,4 +66,33 @@ class TaskController extends Controller
             ];
         }
     }
+
+    public function getTotalTaskComplateAndUncomplate()
+    {
+        $result = DB::table('mom_action_plan')
+            ->select('status', DB::raw('count(*) as jml'))
+            ->groupBy('status')
+            ->get();
+
+        $done = 0;
+        $onProgress = 0;
+        if (count($result) > 0)
+        {
+            for ($i = 0; $i < count($result); $i++)
+            {
+                if ($result[$i]->status == ActionPlan::STATUS_DONE)
+                {
+                    $done = $result[$i]->jml;
+                }
+                else
+                {
+                    $onProgress = $result[$i]->jml;
+                }
+            }
+        }
+
+        $totalTask = array(ActionPlan::STATUS_DONE=>$done, 
+                        ActionPlan::STATUS_ON_PROGRESS =>$onProgress);
+        return $totalTask;
+    }
 }

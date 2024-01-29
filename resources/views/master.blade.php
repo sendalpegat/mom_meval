@@ -36,7 +36,7 @@ $.ajaxSetup({
                 <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
                     <li class="nav-item">
                         <a href="{{route('meeting')}}" class="nav-link align-middle px-0">
-                            <i class="bi bi-card-list fs-4"></i> <span class="ms-1 d-none d-sm-inline">List Meeting</span>
+                            <i class="bi bi-card-list fs-4"></i> <span class="ms-1 d-none d-sm-inline">Dashboard</span>
                         </a>
                     </li>
                     <li>
@@ -48,10 +48,12 @@ $.ajaxSetup({
                         <a href="{{route('meeting/tasks')}}" class="nav-link px-0 align-middle">
                             <i class="fs-4 bi bi-journal-check"></i> <span class="ms-1 d-none d-sm-inline">Action Plan</span></a>
                     </li>
+                    @if (Auth::user()->name == App\Models\User::ADMIN)
                     <li>
                         <a href="javascript:syncUser()" class="nav-link px-0 align-middle ">
                             <i class="fs-4 bi bi-person-down"></i> <span class="ms-1 d-none d-sm-inline">Sync User Odoo</span></a>
                     </li>
+                    @endif
                     
                 </ul>
                 <hr>
