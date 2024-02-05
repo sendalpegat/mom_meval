@@ -11,9 +11,10 @@ use App\Models\meeting\Meeting;
 use App\Models\meeting\ActionPlan;
 use App\Models\User;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\RootController;
 
 
-class MeetingController extends Controller
+class MeetingController extends RootController
 {
     const OBJECT_NAME = "Meeting";
 
@@ -22,6 +23,7 @@ class MeetingController extends Controller
     /** show view list of meeting */
     public function index(Request $request)
     {
+
         //get the task that already done and still on progress
         $task = (new TaskController)->getTotalTaskComplateAndUncomplate();
 
@@ -29,13 +31,54 @@ class MeetingController extends Controller
         $query = Meeting::query();
         if ($request->seachTerm != '')
         {
+            $request->flash();
             $query = $query->where('topic', 'like', '%'.$request->seachTerm.'%');
+        }
+        
+        
+
+        //cek if user as manager filter by devision,created by
+        if (Auth::user()->role != User::ADMIN)
+        {
+            $query->whereIn('mom_id', function($query)
+            {
+                $filterParticipants = ["devision_id" =>Auth::user()->devision_id];
+                $query->select("mom_participants.mom_id")
+                      ->from('mom_participants');
+                
+                if (Auth::user()->role == User::MANAGER)
+                    $query->leftjoin('core_user','core_user.email','=','mom_participants.email');
+                else
+                    $filterParticipants = ["mom_participants.email" =>Auth::user()->email];   
+                    
+                $query->where($filterParticipants);
+            });
+            if (Auth::user()->role == User::MANAGER)
+            {
+                $query->orWhereIn('updated_by', function($query)
+                {
+                    $query->select("email")
+                      ->from('core_user')
+                      ->where("devision_id",Auth::user()->devision_id);
+                });
+            }
+            else
+                $query->orWhere("updated_by",Auth::user()->email);
+            
+        }
+        else
+        {
+            if ($request->seachDeparment != '')
+            {
+                $request->flash();
+                $query = $query->where('devision_id', 'like', '%'.$request->seachDeparment.'%');
+            } 
         }
 
 
-        $meetings = $query->select('mom_meeting.*','core_user.name')
+        $meetings = $query->select('mom_meeting.*','core_user.name', 'core_user.devision_id')
         ->leftjoin('core_user','core_user.email','=','mom_meeting.updated_by')
-        ->orderBy('created_at', 'asc')->paginate(10);
+        ->sortable('created_at')->paginate(10);
 
         $data = array ("meetings"=>$meetings, "task"=>$task);
         return view('meeting.list_meeting', compact('data'))->render();
@@ -127,10 +170,21 @@ class MeetingController extends Controller
         }catch (Exception $e) {
             DB::rollback();
             Log::error($e->getMessage());
-            $response = [
+            return $response = [
                 'status'=>'ok',
                 'success'=>false,
                 'message'=>'Saved fail'
+            ];
+        }
+        catch(\Illuminate\Database\QueryException $ex)
+        {
+            DB::rollback();
+            Log::error($ex->getMessage());
+            $errorMessage = $this->getErrorMessage($ex->getCode());
+            return $response = [
+                'status'=>'ok',
+                'success'=>false,
+                'message'=>'Saved fail. ( '.$errorMessage.' )'
             ];
         }
     }
@@ -295,6 +349,17 @@ class MeetingController extends Controller
                 'message'=>'Saved fail'
             ];
         }
+        catch(\Illuminate\Database\QueryException $ex)
+        {
+            DB::rollback();
+            Log::error($ex->getMessage());
+            $errorMessage = $this->getErrorMessage($ex->getCode());
+            return $response = [
+                'status'=>'ok',
+                'success'=>false,
+                'message'=>'Saved fail. ( '.$errorMessage.' )'
+            ];
+        }
     }
 
     /**
@@ -343,6 +408,17 @@ class MeetingController extends Controller
                 'status'=>'ok',
                 'success'=>false,
                 'message'=>'Deleted fail'
+            ];
+        }
+        catch(\Illuminate\Database\QueryException $ex)
+        {
+            DB::rollback();
+            Log::error($ex->getMessage());
+            $errorMessage = $this->getErrorMessage($ex->getCode());
+            return $response = [
+                'status'=>'ok',
+                'success'=>false,
+                'message'=>'Deleted fail. ( '.$errorMessage.' )'
             ];
         }
     }

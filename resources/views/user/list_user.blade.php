@@ -3,15 +3,15 @@
 @section('content')
 <div>
     <div class="card-header-rounded">
-        <h4>List Action Plan</h4>
+        <h4>List User</h4>
     </div>
     <br>
     <div class="row" style="margin-bottom: 10px;">
         <div class="col-md-8">
         </div>
         <div class="col-md-4" style="text-align: right;">
-        <form action="{{route('meeting/tasks')}}" method="GET">
-            <input type="text" name="seachTerm" placeholder="Search task by remark .." value="{{ old('seachTerm') }}">
+        <form action="{{route('user')}}" method="GET">
+            <input type="text" name="seachTerm" placeholder="Search user by name.." value="{{ old('seachTerm') }}">
             <input type="submit" value="Search">
         </form>
         </div>
@@ -21,16 +21,13 @@
     <table class="table table-striped table-bordered">
      <thead>
       <tr>
-      <th width="5%">Priority</th>
-       <th width="55%">Remark <span id="id_icon"></span></th>
-       <th width="15%" class="sorting" >PIC <span id="post_title_icon"></span></th>
-       <th width="10%">Date</th>
-       <th width="10%">Status</th>
-       <th width="5%">Action</th>
+       <th width="40%"> Name @sortablelink('name',new \Illuminate\Support\HtmlString('&#8645;'))</th>
+       <th width="30%">Email @sortablelink('email',new \Illuminate\Support\HtmlString('&#8645;'))</th>
+       <th width="30%">Department <span id="post_title_icon"></span></th>
       </tr>
      </thead>
      <tbody>
-      @include('meeting.pagination.pagination_child_task')
+      @include('user.pagination.pagination_child_user')
      </tbody>
     </table>
     <input type="hidden" name="hidden_page" id="hidden_page" value="1" />

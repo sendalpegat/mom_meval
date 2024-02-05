@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Ripcord\Ripcord;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\RootController;
 
-class OdooController extends Controller
+class OdooController extends RootController
 {
     
     /**

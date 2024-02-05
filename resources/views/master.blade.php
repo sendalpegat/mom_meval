@@ -48,7 +48,12 @@ $.ajaxSetup({
                         <a href="{{route('meeting/tasks')}}" class="nav-link px-0 align-middle">
                             <i class="fs-4 bi bi-journal-check"></i> <span class="ms-1 d-none d-sm-inline">Action Plan</span></a>
                     </li>
-                    @if (Auth::user()->name == App\Models\User::ADMIN)
+                    <a href="{{route('user')}}" class="nav-link px-0 align-middle">
+                            <i class="fs-4 bi bi-person-fill"></i> <span class="ms-1 d-none d-sm-inline">List Users</span></a>
+                    <li>
+                    
+                    </li>
+                    @if (Auth::user()->role == App\Models\User::ADMIN)
                     <li>
                         <a href="javascript:syncUser()" class="nav-link px-0 align-middle ">
                             <i class="fs-4 bi bi-person-down"></i> <span class="ms-1 d-none d-sm-inline">Sync User Odoo</span></a>

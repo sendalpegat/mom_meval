@@ -22,6 +22,7 @@ Route::get('login', [LoginController::class, 'login'])->name('login');
 Route::post('actionlogin', [LoginController::class, 'actionlogin'])->name('actionlogin');
 Route::get('actionlogout', [LoginController::class, 'actionlogout'])->name('actionlogout')->middleware('auth');
 
+Route::get('user', [UserController::class, 'index'])->name('user')->middleware('auth');
 Route::get('user/sync-odoo', [UserController::class, 'syncOdoo'])->name('user/sync-odoo')->middleware('auth');
 
 Route::post('meeting/add', [MeetingController::class, 'store'])->name('meeting/add')->middleware('auth');

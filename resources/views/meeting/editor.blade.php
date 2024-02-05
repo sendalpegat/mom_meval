@@ -12,7 +12,7 @@ let counter = 0;
             var newRow = $('<tr>');
             var cols = "";
             cols += '<td class="col-1"><span id="rate-'+no+'-1" onclick="gfg(1,this.id)" class="star">★</span><span id="rate-'+no+'-2" onclick="gfg(2,this.id)" class="star">★</span><span id="rate-'+no+'-3" onclick="gfg(3,this.id)" class="star">★</span></td>';
-            cols += '<td class="col-12"><input type="text" class="form-control" id="txtRemark-'+no+'" name="txtRemark-' + no + '" onchange="onRemarkChanged(this.id,this.value)"/><input type="hidden" id="txtRate-'+no+'" name="txtRate-'+no+'" value="0"></td>';
+            cols += '<td class="col-12"><input type="text" class="form-control" maxlength="50" id="txtRemark-'+no+'" name="txtRemark-' + no + '" onchange="onRemarkChanged(this.id,this.value)"/><input type="hidden" id="txtRate-'+no+'" name="txtRate-'+no+'" value="0"></td>';
             cols += '<td class="col-sm-1"><button type="button" id="btnDel-'+no+'" class="ibtnDel btn btn-md btn-danger"><i class="fa fa-trash"></i></button></td>';
             cols += '<td class="col-sm-1"><button type="button" class="btn btn-success btn-md" id="myBtn" data-bs-toggle="modal" data-bs-target="#myModal" onclick="initDialog('+no+')">Task</button></td>'
 
@@ -98,7 +98,7 @@ let counter = 0;
     }
     
     // Main function which finds difference
-    function diff( s1,  s2)
+    function diff(s1, s2)
     {
         
         // change string (eg. 2:21 --> 221, 00:23 --> 23)
@@ -139,7 +139,6 @@ let counter = 0;
         document.getElementById('txtLineNumber').value = lineNumber;
         document.getElementById('txtRemarkDialog').value = document.getElementById('txtRemark-'+lineNumber).value
 
-        console.log("task "+lineNumber+","+mapTasks.has(document.getElementById('txtLineNumber').value));
         if (mapTasks.has(document.getElementById('txtLineNumber').value))
         {
             document.getElementById('picSelect').value = mapTasks.get(document.getElementById('txtLineNumber').value).get("pic");
@@ -152,6 +151,12 @@ let counter = 0;
             notes.setData("<p></p>");
             document.getElementById('dueDate').valueAsDate = new Date();
         }
+
+        $(function(){
+            $("#picSelect").select2({
+                dropdownParent: $("#myModal")
+            });
+        }); 
     }
 
     //save task to map
@@ -181,7 +186,6 @@ let counter = 0;
         }
         else
         {
-            console.log("update task table");
             updateTaskTable(lineNumber, remark, picName,dueDate,notes.getData());
         }
 
@@ -446,11 +450,14 @@ let counter = 0;
                     listTask : listTask,
                 },
                 url: "{{ url('meeting/add') }}",
-                success: function(response) {
+                success: function(response) 
+                {
                     alert(response.message);
-                    window.location = "{{ url('meeting')  }}";
+                    if (response.success)
+                    {
+                        window.location = "{{ url('meeting')  }}";
+                    }
                 }
-
             })
     }
 
@@ -512,6 +519,8 @@ let counter = 0;
     $partisipants = array();
     $tasks = array();
     $pointDiscuss = array();
+    $updatedBy = "";
+    $updatedOn = "";
     
     if (isset($data["meeting"]))
     {
@@ -522,6 +531,8 @@ let counter = 0;
         $startTime = date_format($data["meeting"]->start_time,"H:i");
         $endTime = date_format($data["meeting"]->end_time, "H:i");
         $duration = $data["meeting"]->duration;
+        $updatedBy =   $data["meeting"]->updated_by;
+        $updatedOn =  date_format($data["meeting"]->updated_at, "d M Y H:i");
         
         for ($i = 0; $i < count($data["participants"]); $i++)
         {
@@ -530,17 +541,7 @@ let counter = 0;
         }
 
         $tasks = $data["tasks"];
-        $pointDiscuss = $data["pointDiscuss"];
-
-        
-
-        for ($i = 0; $i < count($data["tasks"]); $i++)
-        {
-
-        }
-
-
-        
+        $pointDiscuss = $data["pointDiscuss"];        
     }
                             
     ?>
@@ -578,6 +579,12 @@ let counter = 0;
                         <input type="hidden" id="txtDuration" name="txtDuration" value="<?php echo $duration ?>">
                         <p id="timeDifference"><?php echo $duration ?></p>
                     </div>
+                    <?php if ($data["viewMode"] == 1){?>
+                        <div class="form-group">
+                        <label for="title"><b>Updated By </b></label>
+                        <label for="title"><?php echo $updatedBy ?> at <?php echo $updatedOn; ?> </label>
+                        </div>
+                    <?php } ?>
                 </div>
             </div>
             
@@ -618,7 +625,7 @@ let counter = 0;
                                 <span id="rate-1-1" onclick="gfg(1,this.id)" class="star">★</span><span id="rate-1-2" onclick="gfg(2,this.id)" class="star">★</span><span id="rate-1-3" onclick="gfg(3,this.id)" class="star">★</span></td>
                             </td>
                             <td class="col-12">
-                                <input type="text" id="txtRemark-1" name="txtRemark-1"  class="form-control"  onchange="onRemarkChanged(this.id,this.value)"/>
+                                <input type="text" maxlength="50" id="txtRemark-1" name="txtRemark-1"  class="form-control"  onchange="onRemarkChanged(this.id,this.value)"/>
                                 <input type="hidden" id="txtRate-1" name="txtRate-1" value="0">
                             </td>
                             <td class="col-sm-1"><a class="deleteRow"></a>
@@ -649,7 +656,6 @@ let counter = 0;
                         </tr>
                     </thead> 
                     <tbody>
-
                     </tbody>
             </table>
             </div>    
@@ -719,10 +725,6 @@ for ($i = 0; $i < count($tasks); $i++)
         console.error( error );
     } );
 
-//     $(function(){
-//   $("#picSelect").select2({
-//     dropdownParent: $("#myModal")
-//   });
-//  }); 
+    
 </script>
 @endsection

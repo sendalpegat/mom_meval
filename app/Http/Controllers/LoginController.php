@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Session;
+use App\Http\Controllers\RootController;
 
-class LoginController extends Controller
+class LoginController extends RootController
 {
     public function login()
     {

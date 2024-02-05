@@ -5,10 +5,15 @@ namespace App\Models\meeting;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Kyslik\ColumnSortable\Sortable;
 
 class ActionPlan extends Model
 {
-    use HasFactory;
+    use HasFactory, Sortable;
+
+    // sortable 
+    public $sortable = ['pic'];
+
     /** Constans status ON_PROGRESS */
     const STATUS_ON_PROGRESS = 0;
     /** Constans status DONE */

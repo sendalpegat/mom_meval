@@ -4,10 +4,14 @@ namespace App\Models\meeting;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Kyslik\ColumnSortable\Sortable;
 
 class PointDiscussed extends Model
 {
-    use HasFactory;
+    use HasFactory, Sortable;
+
+    // sortable 
+    public $sortable = ['remark'];
 
     /**
      * The database table used by the model.

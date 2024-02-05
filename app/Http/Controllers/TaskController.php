@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\meeting\ActionPlan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use App\Http\Controllers;
 
-class TaskController extends Controller
+class TaskController extends RootController
 {
     /**
      * Show list of task
@@ -18,16 +21,25 @@ class TaskController extends Controller
         {
             $query = $query->where('mom_point_discussed.remark', 'like', '%'.$request->seachTerm.'%');
         }
-        
-        $tasks = $query
-        ->select('mom_action_plan.*','mom_point_discussed.remark','mom_point_discussed.rate','core_user.name')
+
+        $query = $query ->select('mom_action_plan.*','mom_point_discussed.remark','mom_point_discussed.rate','core_user.name')
         ->leftJoin('mom_point_discussed', function($join)
                          {
                              $join->on('mom_point_discussed.mom_id', '=', 'mom_action_plan.mom_id');
                              $join->on('mom_point_discussed.line_number','=','mom_action_plan.point_discussed_index');
                          })
-        ->leftjoin('core_user','core_user.email','=','mom_action_plan.pic')
-        ->paginate(5);
+        ->leftjoin('core_user','core_user.email','=','mom_action_plan.pic');
+        //cek if user as manager filter by devision,created by
+        if (Auth::user()->role != User::ADMIN)
+        {
+            if (Auth::user()->role == User::MANAGER)
+            {
+                $query->where('core_user.devision_id',Auth::user()->devision_id);
+            }
+            else
+                $query->where("pic",Auth::user()->email);
+        }
+        $tasks = $query->paginate(10);
         return view('meeting.list_task', compact('tasks'))->render();
     }   
 
@@ -67,11 +79,35 @@ class TaskController extends Controller
         }
     }
 
+    /**
+     * get total task complate and un complete
+     */
     public function getTotalTaskComplateAndUncomplate()
     {
-        $result = DB::table('mom_action_plan')
-            ->select('status', DB::raw('count(*) as jml'))
-            ->groupBy('status')
+        $query = DB::table('mom_action_plan');
+        $groupBy = "status";
+        if (Auth::user()->role != User::ADMIN)
+        {
+            if (Auth::user()->role == User::MANAGER)
+            {
+                $groupBy = "mom_action_plan.status";
+                $query = $query->select('mom_action_plan.status', DB::raw('count(*) as jml'))
+                               ->leftjoin('core_user','core_user.email','=','mom_action_plan.pic')
+                               ->where('core_user.devision_id',Auth::user()->devision_id);
+            }
+            else
+            {
+                $query = $query->select('status', DB::raw('count(*) as jml'))
+                      ->where("pic",Auth::user()->email);
+            }
+        }
+        else
+        {
+            $query = $query->select('status', DB::raw('count(*) as jml'));
+        }
+
+        
+        $result = $query->groupBy($groupBy)
             ->get();
 
         $done = 0;

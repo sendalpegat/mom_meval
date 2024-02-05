@@ -23,7 +23,7 @@
 </tr>
 @endforeach
 <tr>
-    <td colspan="4" align="center">
+    <td colspan="6" align="center">
         {!! $tasks->appends(Request::except('page'))->links('meeting.pagination.custom') !!}
     </td>
 </tr>
