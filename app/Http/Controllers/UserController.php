@@ -21,26 +21,28 @@ class UserController extends RootController
         DB::beginTransaction();
         try
         {
+            set_time_limit(0);
             //get list email id of user
             $emailUser = array();
             $results = DB::table('core_user')
-            ->select('email')
+            ->select('email','name')
             ->get()
             ->toArray();
             foreach($results as $result)
             {
-                array_push($emailUser,$result->email);
+                $emailUser = $emailUser + array($result->name => $result->email);
             }
 
             //get data from odoo
             $columns = [
-                'fields'=> ['active','work_email','name','department_id'],
+                'fields'=> ['active','work_email','name','department_id','parent_id'],
             ];
             $dataUsers = (new OdooController)->getDataFromOdoo("hr.employee",array(),$columns);
             $emails = array();
             for ($i = 0; $i < count($dataUsers); $i ++)
             {
                 $email = $dataUsers[$i]['work_email'];
+            
                 if (!is_null($email))
                 {
                     if ($email != '')
@@ -54,22 +56,32 @@ class UserController extends RootController
                             $departmentIds = $dataUsers[$i]['department_id'];
                             $departmentId = "-";
                             if (!empty($departmentIds))
-                            {
                                 $departmentId = $departmentIds[1];
+                            
+                            $parentIds = $dataUsers[$i]['parent_id'];
+                            $parent = null;
+                            if (!empty($parentIds))
+                            {
+                                if (isset($emailUser[$parentIds[1]]))
+                                {
+                                    $parent = $emailUser[$parentIds[1]];
+                                }
                             }
-
+                                
                             $role = User::USER;
                             //if update failed than add
                             $update = [
                                 'name' => $name, 
-                                'status' => $status
+                                'status' => $status,
+                                'devision_id' => $departmentId,
+                                'parent' => $parent
                             ];
                             
                             $filter = [
                                 'email' => $email
                             ];
 
-                            if (in_array($email, $emailUser))
+                            if (in_array($email, array_values($emailUser)))
                                 $res = DB::table('core_user')->where($filter)->update($update);
                             else
                             {
@@ -81,7 +93,8 @@ class UserController extends RootController
                                         'password' => $default_password,
                                         'role' => $role,
                                         'devision_id' => $departmentId,
-                                        'status' => $status)
+                                        'status' => $status,
+                                        'parent' => $parent)
                                 ); 
                             }
                             array_push($emails,$email);
@@ -151,5 +164,27 @@ class UserController extends RootController
             ->get();
 
         return $result;
+    }
+
+    public function getListUserByParent(string $emailParent)
+    {
+        $rawSql = "WITH RECURSIVE cte AS (
+            SELECT email, parent
+            FROM core_user tl
+            WHERE email = '".$emailParent."' 
+            UNION ALL
+            SELECT t2.email, t2.parent
+            FROM core_user t2
+            JOIN cte ON t2.parent= cte.email
+        )
+        SELECT email FROM cte";
+        $userEmails = DB::select($rawSql);
+        $listUsers = array();
+        foreach($userEmails as $userEmail)
+        {
+            array_push($listUsers, $userEmail->email);
+        }
+
+        return $listUsers;
     }
 }

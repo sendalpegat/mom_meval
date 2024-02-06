@@ -32,12 +32,8 @@ class TaskController extends RootController
         //cek if user as manager filter by devision,created by
         if (Auth::user()->role != User::ADMIN)
         {
-            if (Auth::user()->role == User::MANAGER)
-            {
-                $query->where('core_user.devision_id',Auth::user()->devision_id);
-            }
-            else
-                $query->where("pic",Auth::user()->email);
+            $listUsers = (new UserController)->getListUserByParent(Auth::user()->email);
+            $query->whereIn("pic",$listUsers);
         }
         $tasks = $query->paginate(10);
         return view('meeting.list_task', compact('tasks'))->render();
@@ -88,18 +84,10 @@ class TaskController extends RootController
         $groupBy = "status";
         if (Auth::user()->role != User::ADMIN)
         {
-            if (Auth::user()->role == User::MANAGER)
-            {
-                $groupBy = "mom_action_plan.status";
-                $query = $query->select('mom_action_plan.status', DB::raw('count(*) as jml'))
-                               ->leftjoin('core_user','core_user.email','=','mom_action_plan.pic')
-                               ->where('core_user.devision_id',Auth::user()->devision_id);
-            }
-            else
-            {
-                $query = $query->select('status', DB::raw('count(*) as jml'))
-                      ->where("pic",Auth::user()->email);
-            }
+            $listUsers = (new UserController)->getListUserByParent(Auth::user()->email);
+
+            $query = $query->select('status', DB::raw('count(*) as jml'))
+                      ->whereIn("pic",$listUsers);
         }
         else
         {

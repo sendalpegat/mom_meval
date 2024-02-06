@@ -31,6 +31,8 @@ class MeetingController extends RootController
 
         //get the list of meeting
         $query = Meeting::query();
+        $query = $query->select('mom_meeting.*','user.name', 'user.devision_id')
+        ->leftjoin('core_user as user','user.email','=','mom_meeting.updated_by');
         if ($request->seachTerm != '')
         {
             $query = $query->where('topic', 'like', '%'.$request->seachTerm.'%');
@@ -39,43 +41,25 @@ class MeetingController extends RootController
         //cek if user as manager filter by devision,created by
         if (Auth::user()->role != User::ADMIN)
         {
-            $query->whereIn('mom_id', function($query)
+            $listUsers = (new UserController)->getListUserByParent(Auth::user()->email);
+            $query->whereIn('mom_id', function($query) use ($listUsers)
             {
-                $filterParticipants = ["devision_id" =>Auth::user()->devision_id];
-                $query->select("mom_participants.mom_id")
-                      ->from('mom_participants');
-                
-                if (Auth::user()->role == User::MANAGER)
-                    $query->leftjoin('core_user','core_user.email','=','mom_participants.email');
-                else
-                    $filterParticipants = ["mom_participants.email" =>Auth::user()->email];   
-                    
-                $query->where($filterParticipants);
-            });
-            if (Auth::user()->role == User::MANAGER)
-            {
-                $query->orWhereIn('updated_by', function($query)
-                {
-                    $query->select("email")
-                      ->from('core_user')
-                      ->where("devision_id",Auth::user()->devision_id);
-                });
-            }
-            else
-                $query->orWhere("updated_by",Auth::user()->email);
-            
+                $query->select("mom_id")
+                      ->from('mom_participants')
+                    ->whereIn("email", $listUsers);
+            })
+            ->orWhereIn('updated_by', $listUsers);
         }
         else
         {
             if ($request->seachDeparment != '')
             {
-                $query = $query->where('devision_id',$request->seachDeparment);
+                $query = $query->where('user.devision_id',$request->seachDeparment);
             } 
         }
         $request->flash();
 
-        $meetings = $query->select('mom_meeting.*','core_user.name', 'core_user.devision_id')
-        ->leftjoin('core_user','core_user.email','=','mom_meeting.updated_by')
+        $meetings = $query->leftjoin('core_user','core_user.email','=','mom_meeting.updated_by')
         ->sortable(['created_at' => 'desc'])->paginate(10);
 
         $data = array ("meetings"=>$meetings, "task"=>$task, "departmentIds"=>$departmentIds);

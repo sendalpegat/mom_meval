@@ -3,7 +3,7 @@
         'name' => 'laravel/laravel',
         'pretty_version' => 'dev-development',
         'version' => 'dev-development',
-        'reference' => '76af75b3b36d780b77a22549bcfe2add2e04dea5',
+        'reference' => 'd9361e084018265a12fb9c1178c47806adc711af',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -424,7 +424,7 @@
         'laravel/laravel' => array(
             'pretty_version' => 'dev-development',
             'version' => 'dev-development',
-            'reference' => '76af75b3b36d780b77a22549bcfe2add2e04dea5',
+            'reference' => 'd9361e084018265a12fb9c1178c47806adc711af',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -976,6 +976,15 @@
             'install_path' => __DIR__ . '/../sebastian/version',
             'aliases' => array(),
             'dev_requirement' => true,
+        ),
+        'staudenmeir/laravel-cte' => array(
+            'pretty_version' => 'v1.5.5',
+            'version' => '1.5.5.0',
+            'reference' => 'be096292dfc64392baf2d68fae8ebf7b51ea0b1b',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../staudenmeir/laravel-cte',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'swiftmailer/swiftmailer' => array(
             'pretty_version' => 'v6.3.0',

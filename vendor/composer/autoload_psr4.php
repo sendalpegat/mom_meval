@@ -37,6 +37,7 @@ return array(
     'Symfony\\Component\\ErrorHandler\\' => array($vendorDir . '/symfony/error-handler'),
     'Symfony\\Component\\CssSelector\\' => array($vendorDir . '/symfony/css-selector'),
     'Symfony\\Component\\Console\\' => array($vendorDir . '/symfony/console'),
+    'Staudenmeir\\LaravelCte\\' => array($vendorDir . '/staudenmeir/laravel-cte/src'),
     'Ripcord\\' => array($vendorDir . '/darkaonline/ripcord/src/Ripcord'),
     'Ramsey\\Uuid\\' => array($vendorDir . '/ramsey/uuid/src'),
     'Ramsey\\Collection\\' => array($vendorDir . '/ramsey/collection/src'),

@@ -82,6 +82,7 @@ class ComposerStaticInit4e36f6489ff437766adfabdee5d30790
             'Symfony\\Component\\ErrorHandler\\' => 31,
             'Symfony\\Component\\CssSelector\\' => 30,
             'Symfony\\Component\\Console\\' => 26,
+            'Staudenmeir\\LaravelCte\\' => 23,
         ),
         'R' => 
         array (
@@ -306,6 +307,10 @@ class ComposerStaticInit4e36f6489ff437766adfabdee5d30790
         'Symfony\\Component\\Console\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/console',
+        ),
+        'Staudenmeir\\LaravelCte\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/staudenmeir/laravel-cte/src',
         ),
         'Ripcord\\' => 
         array (
@@ -4684,6 +4689,20 @@ class ComposerStaticInit4e36f6489ff437766adfabdee5d30790
         'SebastianBergmann\\Type\\UnknownType' => __DIR__ . '/..' . '/sebastian/type/src/type/UnknownType.php',
         'SebastianBergmann\\Type\\VoidType' => __DIR__ . '/..' . '/sebastian/type/src/type/VoidType.php',
         'SebastianBergmann\\Version' => __DIR__ . '/..' . '/sebastian/version/src/Version.php',
+        'Staudenmeir\\LaravelCte\\Connections\\CreatesQueryBuilder' => __DIR__ . '/..' . '/staudenmeir/laravel-cte/src/Connections/CreatesQueryBuilder.php',
+        'Staudenmeir\\LaravelCte\\Connections\\MySqlConnection' => __DIR__ . '/..' . '/staudenmeir/laravel-cte/src/Connections/MySqlConnection.php',
+        'Staudenmeir\\LaravelCte\\Connections\\PostgresConnection' => __DIR__ . '/..' . '/staudenmeir/laravel-cte/src/Connections/PostgresConnection.php',
+        'Staudenmeir\\LaravelCte\\Connections\\SQLiteConnection' => __DIR__ . '/..' . '/staudenmeir/laravel-cte/src/Connections/SQLiteConnection.php',
+        'Staudenmeir\\LaravelCte\\Connections\\SqlServerConnection' => __DIR__ . '/..' . '/staudenmeir/laravel-cte/src/Connections/SqlServerConnection.php',
+        'Staudenmeir\\LaravelCte\\Connectors\\ConnectionFactory' => __DIR__ . '/..' . '/staudenmeir/laravel-cte/src/Connectors/ConnectionFactory.php',
+        'Staudenmeir\\LaravelCte\\DatabaseServiceProvider' => __DIR__ . '/..' . '/staudenmeir/laravel-cte/src/DatabaseServiceProvider.php',
+        'Staudenmeir\\LaravelCte\\Eloquent\\QueriesExpressions' => __DIR__ . '/..' . '/staudenmeir/laravel-cte/src/Eloquent/QueriesExpressions.php',
+        'Staudenmeir\\LaravelCte\\Query\\Builder' => __DIR__ . '/..' . '/staudenmeir/laravel-cte/src/Query/Builder.php',
+        'Staudenmeir\\LaravelCte\\Query\\Grammars\\CompilesExpressions' => __DIR__ . '/..' . '/staudenmeir/laravel-cte/src/Query/Grammars/CompilesExpressions.php',
+        'Staudenmeir\\LaravelCte\\Query\\Grammars\\MySqlGrammar' => __DIR__ . '/..' . '/staudenmeir/laravel-cte/src/Query/Grammars/MySqlGrammar.php',
+        'Staudenmeir\\LaravelCte\\Query\\Grammars\\PostgresGrammar' => __DIR__ . '/..' . '/staudenmeir/laravel-cte/src/Query/Grammars/PostgresGrammar.php',
+        'Staudenmeir\\LaravelCte\\Query\\Grammars\\SQLiteGrammar' => __DIR__ . '/..' . '/staudenmeir/laravel-cte/src/Query/Grammars/SQLiteGrammar.php',
+        'Staudenmeir\\LaravelCte\\Query\\Grammars\\SqlServerGrammar' => __DIR__ . '/..' . '/staudenmeir/laravel-cte/src/Query/Grammars/SqlServerGrammar.php',
         'Stringable' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Stringable.php',
         'Symfony\\Component\\Console\\Application' => __DIR__ . '/..' . '/symfony/console/Application.php',
         'Symfony\\Component\\Console\\Attribute\\AsCommand' => __DIR__ . '/..' . '/symfony/console/Attribute/AsCommand.php',
