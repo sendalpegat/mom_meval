@@ -19,7 +19,23 @@
         </div>
         <div class="col-md-8" style="text-align: right;">
         <form action="{{route('meeting')}}" method="GET">
-            Topic : <input type="text" name="seachTerm" value="{{ old('seachTerm') }}"> Department : <input type="text" name="seachDeparment" value="{{ old('seachDeparment') }}">
+            Topic : <input type="text" name="seachTerm" value="{{ old('seachTerm') }}"> 
+            @if (Auth::user()->role == App\Models\User::ADMIN)
+            Department : 
+            
+            <select id="seachDeparment" name="seachDeparment">
+            <?php 
+                $oldDepartment = old('seachDeparment');
+                echo '<option value="">All Department</option>';
+                for ($i = 0; $i < count($data["departmentIds"]); $i++)
+                {
+                    $deptId = $data["departmentIds"][$i]->devision_id;
+                    echo '<option value="'.$deptId.'">'.$deptId.'</option>';
+                }
+                ?>
+            </select>
+            @endif
+            
             <input type="submit" value="Search">
         </form>
         </div>
@@ -44,4 +60,8 @@
     </table>
     <input type="hidden" name="hidden_page" id="hidden_page" value="1" />
 </div>
+<script>
+    var oldDepartment = "<?php echo $oldDepartment; ?>";
+    document.getElementById('seachDeparment').value = oldDepartment;
+</script>
 @endsection

@@ -12,7 +12,7 @@ use App\Models\meeting\ActionPlan;
 use App\Models\User;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\RootController;
-
+use App\Http\Controllers\UserController;
 
 class MeetingController extends RootController
 {
@@ -27,11 +27,12 @@ class MeetingController extends RootController
         //get the task that already done and still on progress
         $task = (new TaskController)->getTotalTaskComplateAndUncomplate();
 
+        $departmentIds = (new UserController)->getDepartments();
+
         //get the list of meeting
         $query = Meeting::query();
         if ($request->seachTerm != '')
         {
-            $request->flash();
             $query = $query->where('topic', 'like', '%'.$request->seachTerm.'%');
         }
         
@@ -70,17 +71,16 @@ class MeetingController extends RootController
         {
             if ($request->seachDeparment != '')
             {
-                $request->flash();
                 $query = $query->where('devision_id', 'like', '%'.$request->seachDeparment.'%');
             } 
         }
-
+        $request->flash();
 
         $meetings = $query->select('mom_meeting.*','core_user.name', 'core_user.devision_id')
         ->leftjoin('core_user','core_user.email','=','mom_meeting.updated_by')
         ->sortable('created_at')->paginate(10);
 
-        $data = array ("meetings"=>$meetings, "task"=>$task);
+        $data = array ("meetings"=>$meetings, "task"=>$task, "departmentIds"=>$departmentIds);
         return view('meeting.list_meeting', compact('data'))->render();
     }
 

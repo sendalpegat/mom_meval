@@ -121,4 +121,14 @@ class UserController extends RootController
         ->paginate(10);
         return view('user.list_user', compact('users'))->render();
     }
+
+    public function getDepartments()
+    {
+        $result = DB::table('core_user')
+            ->select(DB::raw( 'DISTINCT devision_id'))
+            ->where("devision_id", '<>', '')
+            ->get();
+
+        return $result;
+    }
 }
