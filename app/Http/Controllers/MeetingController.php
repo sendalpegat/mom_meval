@@ -78,7 +78,7 @@ class MeetingController extends RootController
 
         $meetings = $query->select('mom_meeting.*','core_user.name', 'core_user.devision_id')
         ->leftjoin('core_user','core_user.email','=','mom_meeting.updated_by')
-        ->sortable('created_at')->paginate(10);
+        ->sortable(['created_at' => 'desc'])->paginate(10);
 
         $data = array ("meetings"=>$meetings, "task"=>$task, "departmentIds"=>$departmentIds);
         return view('meeting.list_meeting', compact('data'))->render();

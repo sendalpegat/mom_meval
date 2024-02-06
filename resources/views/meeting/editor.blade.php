@@ -531,13 +531,22 @@ let counter = 0;
         $startTime = date_format($data["meeting"]->start_time,"H:i");
         $endTime = date_format($data["meeting"]->end_time, "H:i");
         $duration = $data["meeting"]->duration;
+        $users = $data["users"];
         $updatedBy =   $data["meeting"]->updated_by;
-        $updatedOn =  date_format($data["meeting"]->updated_at, "d M Y H:i");
+        foreach ($users as $user)
+        {
+            if ($user->email == $data["meeting"]->updated_by)
+            {
+                $updatedBy = $user->name;
+            }
+        }
+
+        
+        $updatedOn =  date_format($data["meeting"]->created_at, "d M Y H:i");
         
         for ($i = 0; $i < count($data["participants"]); $i++)
         {
             array_push($partisipants, $data["participants"][$i]->email);
-            
         }
 
         $tasks = $data["tasks"];
@@ -582,7 +591,7 @@ let counter = 0;
                     <?php if ($data["viewMode"] == 1){?>
                         <div class="form-group">
                         <label for="title"><b>Updated By </b></label>
-                        <label for="title"><?php echo $updatedBy ?> at <?php echo $updatedOn; ?> </label>
+                        <label for="title"><?php echo $updatedBy ?> at <?php echo $updatedOn ?> </label>
                         </div>
                     <?php } ?>
                 </div>

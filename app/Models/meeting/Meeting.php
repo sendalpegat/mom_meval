@@ -11,7 +11,7 @@ class Meeting extends Model
     use HasFactory, Sortable;
 
     // sortable 
-    public $sortable = ['topic', 'updated_at'];
+    public $sortable = ['topic', 'created_at'];
 
     /**
      * The database table used by the model.
