@@ -20,6 +20,7 @@
         <div class="col-md-8" style="text-align: right;">
         <form action="{{route('meeting')}}" method="GET">
             Topic : <input type="text" name="seachTerm" value="{{ old('seachTerm') }}"> 
+            <?php $oldDepartment = ""; ?>
             @if (Auth::user()->role == App\Models\User::ADMIN)
             Department : 
             

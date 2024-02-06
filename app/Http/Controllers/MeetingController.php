@@ -36,8 +36,6 @@ class MeetingController extends RootController
             $query = $query->where('topic', 'like', '%'.$request->seachTerm.'%');
         }
         
-        
-
         //cek if user as manager filter by devision,created by
         if (Auth::user()->role != User::ADMIN)
         {
@@ -71,7 +69,7 @@ class MeetingController extends RootController
         {
             if ($request->seachDeparment != '')
             {
-                $query = $query->where('devision_id', 'like', '%'.$request->seachDeparment.'%');
+                $query = $query->where('devision_id',$request->seachDeparment);
             } 
         }
         $request->flash();

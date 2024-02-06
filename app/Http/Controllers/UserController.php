@@ -21,6 +21,17 @@ class UserController extends RootController
         DB::beginTransaction();
         try
         {
+            //get list email id of user
+            $emailUser = array();
+            $results = DB::table('core_user')
+            ->select('email')
+            ->get()
+            ->toArray();
+            foreach($results as $result)
+            {
+                array_push($emailUser,$result->email);
+            }
+
             //get data from odoo
             $columns = [
                 'fields'=> ['active','work_email','name','department_id'],
@@ -58,8 +69,9 @@ class UserController extends RootController
                                 'email' => $email
                             ];
 
-                            $res = DB::table('core_user')->where($filter)->update($update);
-                            if ($res == 0)
+                            if (in_array($email, $emailUser))
+                                $res = DB::table('core_user')->where($filter)->update($update);
+                            else
                             {
                                 $default_password =  Hash::make("meval-user");
                                 //add user
@@ -111,15 +123,24 @@ class UserController extends RootController
 
     public function index(Request $request)
     {
+        $departmentIds = (new UserController)->getDepartments();
         $query = User::query();
         if ($request->seachTerm != '')
         {
             $query = $query->where('name', 'like', '%'.$request->seachTerm.'%');
         }
+
+        if ($request->seachDeparment != '')
+        {
+            $query = $query->where('devision_id',$request->seachDeparment);
+        } 
+
         $users = $query->select('name','email','devision_id')
         ->sortable('name','email')
         ->paginate(10);
-        return view('user.list_user', compact('users'))->render();
+
+        $data = array ("users"=>$users, "departmentIds"=>$departmentIds);
+        return view('user.list_user', compact('data'))->render();
     }
 
     public function getDepartments()
