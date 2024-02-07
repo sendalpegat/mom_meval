@@ -13,7 +13,7 @@
 @endforeach
 <tr>
     <td colspan="6" align="center">
-    {!! $meetings->appends(Request::except('page'))->links('meeting.pagination.custom') !!}
+    {!! $meetings->appends(Request::except('page'))->onEachSide(2)->links('meeting.pagination.custom') !!}
     </td>
 </tr>
 

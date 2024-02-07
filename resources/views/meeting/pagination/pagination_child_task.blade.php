@@ -24,7 +24,7 @@
 @endforeach
 <tr>
     <td colspan="6" align="center">
-        {!! $tasks->appends(Request::except('page'))->links('meeting.pagination.custom') !!}
+        {!! $tasks->appends(Request::except('page'))->onEachSide(2)->links('meeting.pagination.custom') !!}
     </td>
 </tr>
 <script>

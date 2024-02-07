@@ -11,8 +11,8 @@
         </div>
         <div class="col-md-8" style="text-align: right;">
         <form action="{{route('user')}}" method="GET">
-            <input type="text" name="seachTerm" placeholder="Search user by name.." value="{{ old('seachTerm') }}">
-            <select id="seachDeparment" name="seachDeparment">
+            Name : <input type="text" name="seachTerm" value="{{ old('seachTerm') }}">
+            Department : <select id="seachDeparment" name="seachDeparment">
             <?php 
                 $oldDepartment = old('seachDeparment');
                 echo '<option value="">All Department</option>';
