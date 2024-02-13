@@ -1,7 +1,7 @@
 @extends('master')
 
 @section('content')
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
 var stars =  document.getElementsByClassName("star");
 let counter = 0;
@@ -141,6 +141,7 @@ let counter = 0;
 
         if (mapTasks.has(document.getElementById('txtLineNumber').value))
         {
+            document.getElementById('txtStatus').value = mapTasks.get(document.getElementById('txtLineNumber').value).get("status");
             document.getElementById('picSelect').value = mapTasks.get(document.getElementById('txtLineNumber').value).get("pic");
             notes.setData(mapTasks.get(document.getElementById('txtLineNumber').value).get("notes"));
             document.getElementById('dueDate').value = mapTasks.get(document.getElementById('txtLineNumber').value).get("dueDate");
@@ -151,7 +152,7 @@ let counter = 0;
             notes.setData("<p></p>");
             document.getElementById('dueDate').valueAsDate = new Date();
         }
-
+        
         $(function(){
             $("#picSelect").select2({
                 dropdownParent: $("#myModal")
@@ -174,19 +175,21 @@ let counter = 0;
         var picName = compPic.options[compPic.selectedIndex].text;
         var dueDate = document.getElementById('dueDate').value;
         var remark = document.getElementById('txtRemarkDialog').value;
+        var status = document.getElementById('txtStatus').value;
         mapTask.set("pic",document.getElementById('picSelect').value);
         mapTask.set("notes",notes.getData());
         mapTask.set("dueDate",dueDate);
         mapTask.set("picName",picName);
+        mapTask.set("status",status);
         mapTasks.set(document.getElementById('txtLineNumber').value,mapTask);
 
         if (added)
         {
-            addRowTaskTable(remark, lineNumber, picName,dueDate,notes.getData());
+            addRowTaskTable(remark, lineNumber, picName,dueDate,notes.getData(), status);
         }
         else
         {
-            updateTaskTable(lineNumber, remark, picName,dueDate,notes.getData());
+            updateTaskTable(lineNumber, remark, picName,dueDate,notes.getData(), status);
         }
 
     }
@@ -205,14 +208,14 @@ let counter = 0;
     }
 
     //add row of task table
-    function addRowTaskTable(remark, lineNumber, picName,dueDate,notes)
+    function addRowTaskTable(remark, lineNumber, picName,dueDate,notes, status)
     {
         var newRow = $('<tr id="row-'+lineNumber+'">');
         let objectDate = new Date(dueDate);
         let day = objectDate.getDate();
         let month = objectDate.getMonth() + 1;
         let year = objectDate.getFullYear();
-        var cols =  getCols(remark,picName, dueDate, notes, lineNumber) +"</tr>";
+        var cols =  getCols(remark,picName, dueDate, notes, lineNumber, status) +"</tr>";
         newRow.append(cols);
         $("table.table-striped").append(newRow);
     }
@@ -226,18 +229,19 @@ let counter = 0;
     }
 
     //update task table
-    function updateTaskTable(id,remark,picName, dueDate, notes)
+    function updateTaskTable(id,remark,picName, dueDate, notes, status)
     {
         var cols = '<tr id="row-'+id+'">'
-                    +getCols(remark,picName, dueDate, notes,id)
+                    +getCols(remark,picName, dueDate, notes,id, status)
                     +'</tr>';
         var idCol = "td#col"+id;
         $(idCol).parent().replaceWith(cols);
     }
 
     //create coloumn for task table
-    function getCols(remark,picName, dueDate, notes, id)
+    function getCols(remark,picName, dueDate, notes, id, status)
     { 
+        var mode = <?php echo $data["viewMode"];?>;
         let objectDate = new Date(dueDate);
         let day = objectDate.getDate();
 
@@ -253,6 +257,11 @@ let counter = 0;
         cols += '<td class="col-8" id="col'+id+'">'+remark +'<p>Note : </p>'+notes+'</td>';
         cols += '<td class="col-sm-3">'+picName+'</td>';
         cols += '<td class="col-sm-3">'+day+'-'+textMonth+'-'+year+'</td>';
+
+        if (mode == 1)
+        {
+            cols += '<td class="col-sm-3">'+status+'</td>';
+        }
         return cols;
     }
 
@@ -488,7 +497,7 @@ let counter = 0;
         }
     }
 
-    function setTask(lineNumber,pic, picName,notes,dueDate)
+    function setTask(lineNumber,pic, picName,notes,dueDate, status)
     {
         var mapTask = new Map();
         var remark = document.getElementById('txtRemark-'+lineNumber).value;
@@ -496,9 +505,10 @@ let counter = 0;
         mapTask.set("notes",notes);
         mapTask.set("dueDate",dueDate);
         mapTask.set("picName",picName);
-        console.log("dueDate "+dueDate)
+        mapTask.set("status",status);
+
         mapTasks.set(lineNumber.toString(),mapTask);
-        addRowTaskTable(remark, lineNumber, picName,dueDate,notes);
+        addRowTaskTable(remark, lineNumber, picName,dueDate,notes, status);
     }
 </script>
 <div>
@@ -513,12 +523,14 @@ let counter = 0;
     $topic = "";
     $location = "";
     $momDate = Date("Y-m-d");
-    $startTime = date("h:m");
-    $endTime = date("h:m");
+    $startTime = Date("h:m");
+    $endTime = Date("h:m");
     $duration = "00:00";
     $partisipants = array();
     $tasks = array();
     $pointDiscuss = array();
+    $createdBy = "";
+    $createdOn = "";
     $updatedBy = "";
     $updatedOn = "";
     
@@ -528,21 +540,25 @@ let counter = 0;
         $id = $data["meeting"]->mom_id;
         $topic = $data["meeting"]->topic;
         $location = $data["meeting"]->location;
-        $startTime = date_format($data["meeting"]->start_time,"H:i");
-        $endTime = date_format($data["meeting"]->end_time, "H:i");
+        $startTime = date_format($data["meeting"]->start_time,"H:m");
+        $endTime = date_format($data["meeting"]->end_time, "H:m");
         $duration = $data["meeting"]->duration;
         $users = $data["users"];
+        $createdBy = $data["meeting"]->created_by;
         $updatedBy =   $data["meeting"]->updated_by;
         foreach ($users as $user)
         {
             if ($user->email == $data["meeting"]->updated_by)
-            {
                 $updatedBy = $user->name;
-            }
+            
+            if ($user->email == $data["meeting"]->created_by)
+                $createdBy = $user->name;
+            
         }
 
         
-        $updatedOn =  date_format($data["meeting"]->created_at, "d M Y H:i");
+        $updatedOn =  date_format($data["meeting"]->updated_at, "d M Y H:m");
+        $createdOn =  date_format($data["meeting"]->created_at, "d M Y H:m");
         
         for ($i = 0; $i < count($data["participants"]); $i++)
         {
@@ -590,8 +606,11 @@ let counter = 0;
                     </div>
                     <?php if ($data["viewMode"] == 1){?>
                         <div class="form-group">
-                        <label for="title"><b>Updated By </b></label>
-                        <label for="title"><?php echo $updatedBy ?> at <?php echo $updatedOn ?> </label>
+                        <label for="title"><b>Created by </b></label>
+                        <label for="title"><?php echo $createdBy ?> <b>at</b> <?php echo $createdOn ?> </label>
+                        <br>
+                        <label for="title"><b>Updated by </b></label>
+                        <label for="title"><?php echo $updatedBy ?> <b>at</b> <?php echo $updatedOn ?> </label>
                         </div>
                     <?php } ?>
                 </div>
@@ -662,6 +681,9 @@ let counter = 0;
                             <td style="background-color:#e6e6e6">Remark</td>
                             <td style="background-color:#e6e6e6">PIC</td>
                             <td style="background-color:#e6e6e6">Due Date</td>
+                            <?php if ($data["viewMode"] == 1){?>
+                                <td style="background-color:#e6e6e6">Status</td>
+                            <?php }?>
                         </tr>
                     </thead> 
                     <tbody>
@@ -683,7 +705,7 @@ for ($i = 0; $i < count($tasks); $i++)
 {
     echo "<script> setTask(".$tasks[$i]->line_number.",'"
     .$tasks[$i]->pic."','".$tasks[$i]->name."','".$tasks[$i]->note.
-    "','".$tasks[$i]->due_date."'); </script>";
+    "','".$tasks[$i]->due_date."','".App\Models\meeting\ActionPlan::getStatusName($tasks[$i]->status)."'); </script>";
 }
 ?>
 <div class="modal fade" id="myModal" role="dialog" data-bs-focus="false" >
@@ -696,7 +718,7 @@ for ($i = 0; $i < count($tasks); $i++)
         </div>
         <div class="modal-body" >
             <div><b>PIC :</b> 
-                <select id="picSelect" class="form-control">
+                <select id="picSelect" style="width: 50%">
                     <option value="" selected="selected"> Select PIC </option>
                     <?php $users = $data["users"] ?>
                     @foreach ($users as $user)
@@ -706,6 +728,7 @@ for ($i = 0; $i < count($tasks); $i++)
                 </select>
                 <input type="hidden" id="txtLineNumber" name="txtLineNumber" value="0">
                 <input type="hidden" id="txtRemarkDialog" name="txtLineNumber" value="0">
+                <input type="hidden" id="txtStatus" name="txtStatus" value="<?php echo App\Models\meeting\ActionPlan::getStatusName(App\Models\meeting\ActionPlan::STATUS_ON_PROGRESS)?>">
             </div>
             <br>
             <div><b>Due date :</b> <input type="date" class="form-control" id="dueDate" name="dueDate" placeholder="dd-mm-yyyy"></div>
@@ -720,7 +743,7 @@ for ($i = 0; $i < count($tasks); $i++)
       </div>
       
     </div>
-  </div>
+</div>
    
 
 <script>

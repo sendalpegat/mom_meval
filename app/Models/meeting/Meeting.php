@@ -36,6 +36,7 @@ class Meeting extends Model
         'end_time',
         'duration',
         'updated_by',
+        'created_by',
         'note',
       ];
 

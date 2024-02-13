@@ -23,46 +23,88 @@ class MeetingController extends RootController
     /** show view list of meeting */
     public function index(Request $request)
     {
-
-        //get the task that already done and still on progress
-        $task = (new TaskController)->getTotalTaskComplateAndUncomplate();
-
         $departmentIds = (new UserController)->getDepartments();
 
         //get the list of meeting
+        $queryStatus = DB::table('mom_action_plan')
+                   ->select('mom_id', DB::raw('SUM( case when STATUS = 1 then 1 else 0 END) AS done'),
+                            DB::raw('COUNT(*) AS total'))
+                   ->groupBy('mom_id');
+
         $query = Meeting::query();
-        $query = $query->select('mom_meeting.*','user.name', 'user.devision_id')
-        ->leftjoin('core_user as user','user.email','=','mom_meeting.updated_by');
+        $query = $query->select('mom_meeting.*','user.name as updated_by_name'
+                                ,'user2.name as created_by_name', 'user.devision_id',
+                                DB::raw('case when action_plan.done = action_plan.total then 1 ELSE 0 end AS status'))
+        ->leftjoin('core_user as user','user.email','=','mom_meeting.updated_by')
+        ->leftjoin('core_user as user2','user2.email','=','mom_meeting.created_by')
+        ->joinSub('select mom_id,SUM( case when STATUS = 1 then 1 else 0 END) done, COUNT(*) AS total from mom_action_plan group by mom_id', 
+                'action_plan', 'action_plan.mom_id', '=', 'mom_meeting.mom_id', 'left');
+        // ->joinSub($queryStatus, 'action_plan ', function ($join) {
+        //     $join->on('mom_meeting.mom_id', '=', 'action_plan.mom_id');
+        // });
+
         if ($request->seachTerm != '')
         {
             $query = $query->where('topic', 'like', '%'.$request->seachTerm.'%');
         }
-        
+
         //cek if user as manager filter by devision,created by
+        $listUsers = array();
+        $userEmails = array();
         if (Auth::user()->role != User::ADMIN)
         {
-            $listUsers = (new UserController)->getListUserByParent(Auth::user()->email);
-            $query->whereIn('mom_id', function($query) use ($listUsers)
+            $listUsers = array();
+            $userEmails = (new UserController)->getListUserByParent(Auth::user()->email);
+            foreach($userEmails as $userEmail)
             {
-                $query->select("mom_id")
-                      ->from('mom_participants')
-                    ->whereIn("email", $listUsers);
-            })
-            ->orWhereIn('updated_by', $listUsers);
+                array_push($listUsers, $userEmail->email);
+            }
+            $userId = $request->user;
+            $query->where(function ($query) use ($listUsers) {
+                $query->whereIn('mom_meeting.mom_id', function($query) use ($listUsers)
+                {
+                    $query->select("mom_id")
+                          ->from('mom_participants')
+                        ->whereIn("email", $listUsers);
+                })
+                ->orWhereIn('updated_by', $listUsers)
+                ->orWhereIn('created_by', $listUsers);
+            });
+            if ($request->seachUser != '')
+            {
+                $userId = $request->seachUser;
+                $query->where(function ($query) use ($userId) {
+                    $query->where('updated_by', $userId)
+                    ->orWhere('created_by', $userId);
+                });
+            } 
         }
         else
         {
+            $userEmails = (new UserController)->getAllListUsersThatActive();
             if ($request->seachDeparment != '')
             {
                 $query = $query->where('user.devision_id',$request->seachDeparment);
             } 
+
+            if ($request->seachUser != '')
+            {
+                $userId = $request->seachUser;
+                $query->where(function ($query) use ($userId) {
+                    $query->where('updated_by', $userId)
+                    ->orWhere('created_by', $userId);
+                });
+            } 
         }
         $request->flash();
 
-        $meetings = $query->leftjoin('core_user','core_user.email','=','mom_meeting.updated_by')
-        ->sortable(['created_at' => 'desc'])->paginate(10);
+        $meetings = $query->sortable(['created_at' => 'desc'])->paginate(10);
 
-        $data = array ("meetings"=>$meetings, "task"=>$task, "departmentIds"=>$departmentIds);
+        //get the task that already done and still on progress
+        $task = (new TaskController)->getTotalTaskComplateAndUncomplateByUser($listUsers);
+
+        $data = array ("meetings"=>$meetings, "task"=>$task, "departmentIds"=>$departmentIds,
+            "users"=> $userEmails);
         return view('meeting.list_meeting', compact('data'))->render();
     }
 
@@ -97,6 +139,7 @@ class MeetingController extends RootController
                             "start_time"=> $request->get('startTime'),
                             "end_time"=> $request->get('endTime'),
                             "duration"=> $request->get('duration'),
+                            "created_by" => Auth::user()->email,
                             "updated_by" => Auth::user()->email);
 
             //save meeting to database                
@@ -237,6 +280,7 @@ class MeetingController extends RootController
 
         //get task
         $tasks = DB::table('mom_action_plan')
+            ->select('mom_action_plan.*','core_user.name')
             ->leftJoin('core_user', 'mom_action_plan.pic', '=', 'core_user.email')
             ->where("mom_id", $id)
             ->get();
@@ -268,6 +312,7 @@ class MeetingController extends RootController
             $meeting->end_time = $request->get('endTime');
             $meeting->duration = $request->get('duration');
             $meeting->updated_by = Auth::user()->email;
+            $meeting->updated_at = date("Y-m-d h:i:s");
             $meeting->update();                
 
             //delete mom discussed first

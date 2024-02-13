@@ -22,10 +22,10 @@
      <thead>
       <tr>
       <th width="5%">Priority</th>
-       <th width="55%">Remark <span id="id_icon"></span></th>
+       <th width="40%">Remark <span id="id_icon"></span></th>
        <th width="15%" class="sorting" >PIC <span id="post_title_icon"></span></th>
        <th width="10%">Date</th>
-       <th width="10%">Status</th>
+       <th width="25%">Status</th>
        <th width="5%">Action</th>
       </tr>
      </thead>

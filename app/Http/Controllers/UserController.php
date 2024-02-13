@@ -156,6 +156,9 @@ class UserController extends RootController
         return view('user.list_user', compact('data'))->render();
     }
 
+    /**
+     * Get list of department id from user
+     */
     public function getDepartments()
     {
         $result = DB::table('core_user')
@@ -166,19 +169,32 @@ class UserController extends RootController
         return $result;
     }
 
+    /**
+     * Get list of user by parent
+     */
     public function getListUserByParent(string $emailParent)
     {
         $rawSql = "WITH RECURSIVE cte AS (
-            SELECT email, parent
+            SELECT email, name, parent
             FROM core_user tl
             WHERE email = '".$emailParent."' 
             UNION ALL
-            SELECT t2.email, t2.parent
+            SELECT t2.email, t2.name, t2.parent
             FROM core_user t2
             JOIN cte ON t2.parent= cte.email
         )
-        SELECT email FROM cte";
+        SELECT email,name FROM cte";
         $userEmails = DB::select($rawSql);
+        return $userEmails;
+    }
+
+    /**
+     * Get list of user email by parent
+     */
+    public function getListUserEmailByParent(string $emailParent)
+    {
+       
+        $userEmails = $this->getListUserByParent($emailParent);
         $listUsers = array();
         foreach($userEmails as $userEmail)
         {
@@ -186,5 +202,18 @@ class UserController extends RootController
         }
 
         return $listUsers;
+    }
+
+    /**
+     * Get list of user that status is Active
+     */
+    public function getAllListUsersThatActive()
+    {
+        $result = DB::table('core_user')
+        ->select('email','name')
+        ->where("status", User::ACTIVE)
+        ->get();
+
+        return $result;
     }
 }

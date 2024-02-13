@@ -32,7 +32,7 @@ class TaskController extends RootController
         //cek if user as manager filter by devision,created by
         if (Auth::user()->role != User::ADMIN)
         {
-            $listUsers = (new UserController)->getListUserByParent(Auth::user()->email);
+            $listUsers = (new UserController)->getListUserEmailByParent(Auth::user()->email);
             $query->whereIn("pic",$listUsers);
         }
         $tasks = $query->paginate(10);
@@ -48,12 +48,13 @@ class TaskController extends RootController
         $id = $request->id;
         $index = $request->index;
         $lineNumber = $request->lineNumber;
+        $note = $request->note;
         DB::beginTransaction();
         try 
         {
             $filter = ["mom_id" =>$id, "point_discussed_index"=> $index, "line_number"=>$lineNumber];
             //update status of task
-            DB::table('mom_action_plan')->where($filter)->update(['status' =>DB::raw(ActionPlan::STATUS_DONE)]);
+            DB::table('mom_action_plan')->where($filter)->update(['status' =>DB::raw(ActionPlan::STATUS_DONE),'note'=>$note]);
            
             DB::commit();
 
@@ -78,16 +79,14 @@ class TaskController extends RootController
     /**
      * get total task complate and un complete
      */
-    public function getTotalTaskComplateAndUncomplate()
+    public function getTotalTaskComplateAndUncomplateByUser($emailUsers)
     {
         $query = DB::table('mom_action_plan');
         $groupBy = "status";
-        if (Auth::user()->role != User::ADMIN)
+        if (!empty($emailUsers))
         {
-            $listUsers = (new UserController)->getListUserByParent(Auth::user()->email);
-
             $query = $query->select('status', DB::raw('count(*) as jml'))
-                      ->whereIn("pic",$listUsers);
+                      ->whereIn("pic",$emailUsers);
         }
         else
         {
