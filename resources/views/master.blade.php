@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css">
     <link rel="stylesheet" href="{{ asset('/public/css/app.css') }}" type="text/css">
+    <link rel="stylesheet" href="{{ asset('/public/css/jquery.timepicker.css') }}" type="text/css">
     
     <script src="{{ asset('/public/js/multiselect-dropdown.js') }}" ></script>
     <meta name="csrf-token" content="{{ csrf_token() }}" />
@@ -17,6 +18,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <script src="https://cdn.ckeditor.com/ckeditor5/38.1.0/classic/ckeditor.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="{{ asset('/public/js/jquery.timepicker.js') }}" ></script>
 </head>
 <body>
 <script type="text/javascript">

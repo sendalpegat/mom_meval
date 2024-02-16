@@ -22,7 +22,7 @@ class TaskController extends RootController
             $query = $query->where('mom_point_discussed.remark', 'like', '%'.$request->seachTerm.'%');
         }
 
-        $query = $query ->select('mom_action_plan.*','mom_point_discussed.remark','mom_point_discussed.rate','core_user.name')
+        $query = $query ->select('mom_action_plan.*','mom_point_discussed.remark as remark_point','mom_point_discussed.rate','core_user.name')
         ->leftJoin('mom_point_discussed', function($join)
                          {
                              $join->on('mom_point_discussed.mom_id', '=', 'mom_action_plan.mom_id');
@@ -54,7 +54,7 @@ class TaskController extends RootController
         {
             $filter = ["mom_id" =>$id, "point_discussed_index"=> $index, "line_number"=>$lineNumber];
             //update status of task
-            DB::table('mom_action_plan')->where($filter)->update(['status' =>DB::raw(ActionPlan::STATUS_DONE),'note'=>$note]);
+            DB::table('mom_action_plan')->where($filter)->update(['status' =>DB::raw(ActionPlan::STATUS_DONE),'remark'=>$note]);
            
             DB::commit();
 

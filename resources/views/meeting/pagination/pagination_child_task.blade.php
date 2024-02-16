@@ -11,12 +11,12 @@
                 <span class="star">★</span><span class="star">★</span><span class="star">★</span>
             @endif
     </td>
-    <td>{{ $row->remark}} <?php echo $row->note?> </td>
+    <td>{{ $row->remark_point}} <?php echo $row->note?> </td>
     <td>{{ $row->name }}</td>
     <td><?php echo date_format($row->due_date,"d M Y")?></td>
     <td>{{ App\Models\meeting\ActionPlan::getStatusName($row->status)}}
         @if ($row->status == App\Models\meeting\ActionPlan::STATUS_DONE)
-        <?php echo $row->note; ?>
+        <?php echo $row->remark; ?>
         @endif
     </td>
     <td>

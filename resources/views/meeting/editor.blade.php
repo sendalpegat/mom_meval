@@ -5,6 +5,7 @@
 <script>
 var stars =  document.getElementsByClassName("star");
 let counter = 0;
+    
     $(document).ready(function () {
         // add row for point discussed table
         $("#addrow").on("click", function () {
@@ -28,7 +29,7 @@ let counter = 0;
             //counter -= 1
         });
 
-        
+       
     });
 
     let notes;
@@ -62,11 +63,15 @@ let counter = 0;
     }
 
     //calculate duration
-    function handler(e){
+    function handler(){
 
         const getSeconds = s => s.split(":").reduce((acc, curr) => acc * 60 + +curr, 0);
-        var seconds1 = getSeconds(document.getElementById("startTime").value+":00");
-        var seconds2 = getSeconds(document.getElementById("endTime").value+":00");
+        var startTime = convertTime12to24(document.getElementById("startTime").value);
+        var endTime = convertTime12to24(document.getElementById("endTime").value);
+        var seconds1 = getSeconds(startTime+":00");
+        var seconds2 = getSeconds(endTime+":00");
+
+        console.log("start "+startTime+", "+endTime);
 
         var res = Math.abs(seconds2 - seconds1);
 
@@ -84,6 +89,21 @@ let counter = 0;
         document.getElementById("timeDifference").innerHTML = txtHours + ":" + txtMinute;
         document.getElementById("txtDuration").value = txtHours + ":" + txtMinute;
         
+    }
+
+    function convertTime12to24(time12h) {
+        let [hours, minutes, modifier] = time12h.match(/(\d+|pm|am)/gi);
+
+        if (hours === '12') {
+            hours = '00';
+        }
+
+        if (modifier.toLowerCase() === 'pm') {
+            hours = parseInt(hours, 10) + 12;
+        }
+
+        let time24 = hours +":"+minutes;
+        return time24;
     }
 
     function removeColon(s)
@@ -106,10 +126,9 @@ let counter = 0;
         
         time2 = removeColon(s2);
         
-        console.log(time1+","+time2);
         // difference between hours
         hourDiff = parseInt((time2 / 100) - (time1 / 100) - 1);
-        console.log(hourDiff);
+
         // difference between minutes
         minDiff = parseInt(time2 % 100 + (60 - time1 % 100));
     
@@ -359,8 +378,8 @@ let counter = 0;
         var topic = document.getElementById('txtTopic').value;
         var location = document.getElementById('txtLocation').value;
         var momDate = document.getElementById('momDate').value;
-        var startTime = document.getElementById('startTime').value;
-        var endTime = document.getElementById('endTime').value;
+        var startTime = convertTime12to24(document.getElementById("startTime").value);
+        var endTime = convertTime12to24(document.getElementById("endTime").value);
         var duration = document.getElementById('txtDuration').value;
         const partisipans = [];
         const select = document.getElementById('paricipans');
@@ -413,8 +432,8 @@ let counter = 0;
         var topic = document.getElementById('txtTopic').value;
         var location = document.getElementById('txtLocation').value;
         var momDate = document.getElementById('momDate').value;
-        var startTime = document.getElementById('startTime').value;
-        var endTime = document.getElementById('endTime').value;
+        var startTime = convertTime12to24(document.getElementById("startTime").value);
+        var endTime = convertTime12to24(document.getElementById("endTime").value);
         var duration = document.getElementById('txtDuration').value;
         const partisipans = [];
         const select = document.getElementById('paricipans');
@@ -594,15 +613,16 @@ let counter = 0;
                         <label for="appt"><b>Time</b></label>
                         <div>
                             <label for="appt">start</label>
-                            <input type="time" id="startTime" name="startTime" onchange="handler(event);" value="<?php echo $startTime?>">
+                            <input id="startTime" type="text" class="time"/>
                             <label for="appt"> until </label>
-                            <input type="time" id="endTime" name="endTime" onchange="handler(event);" value="<?php echo $endTime ?>">
+                            <input id="endTime" type="text" class="time"/>
                         </div>
                     </div> 
                     <div class="form-group">
                         <label for="title"><b>Duration</b></label>
                         <input type="hidden" id="txtDuration" name="txtDuration" value="<?php echo $duration ?>">
                         <p id="timeDifference"><?php echo $duration ?></p>
+                        
                     </div>
                     <?php if ($data["viewMode"] == 1){?>
                         <div class="form-group">
@@ -757,6 +777,36 @@ for ($i = 0; $i < count($tasks); $i++)
         console.error( error );
     } );
 
-    
+    $(function() {
+        $('#startTime').timepicker();
+        $('#endTime').timepicker();
+
+        $('#startTime').on('changeTime', function() {
+            handler();
+        });
+        $('#endTime').on('changeTime', function() {
+            handler();
+        });
+    });
+
+    $(document).ready(function () {
+        var dateMom = "<?php echo $momDate; ?>";
+        var startTime = "<?php echo $startTime; ?>";
+        var endTime = "<?php echo $endTime; ?>";
+        var mode = <?php echo $data["viewMode"];?>;
+        console.log("set start "+startTime+",  "+endTime);
+        if (mode == 1)
+        {
+            $('#startTime').timepicker('setTime', new Date(dateMom +" "+startTime));
+            $('#endTime').timepicker('setTime', new Date(dateMom +" "+endTime));
+        }
+        else
+        {
+            $('#startTime').timepicker('setTime', new Date());
+            $('#endTime').timepicker('setTime', new Date());
+        }
+    });
+
+   
 </script>
 @endsection

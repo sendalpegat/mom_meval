@@ -2,8 +2,8 @@
 <tr>
     <td>{{ $row->topic}}</td>
     <td>{{ $row->location }}</td>
-    <td>{{ $row->created_by_name }}<br><?php echo date_format($row->created_at,"d M Y H:i")?></td>
-    <td>{{ $row->updated_by_name }}<br><?php echo date_format($row->updated_at,"d M Y H:i")?></td>
+    <td>{{ $row->created_by_name }}<br><?php echo date_format($row->created_at,"d-m-Y H:i")?></td>
+    <td>{{ $row->updated_by_name }}<br><?php echo date_format($row->updated_at,"d-m-Y H:i")?></td>
     <td>{{$row->devision_id}}</td>
     <td>{{ App\Models\meeting\ActionPlan::getStatusName($row->status)}}</td>
     <td align="center">
