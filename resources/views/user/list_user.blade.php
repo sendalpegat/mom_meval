@@ -23,7 +23,7 @@
                 }
                 ?>
             </select>
-            <input type="submit" value="Search">
+            <button class="btn btn-primary" type="submit">Search <i class="fa fa-search"></i></button>
         </form>
         </div>
     </div>

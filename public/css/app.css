@@ -91,6 +91,17 @@ body {
   border-color: powderblue;
 }
 
+.rectangle-dashboard:hover {
+  
+  background-color:rgb(102, 102, 207);
+  color:white; 
+  padding:10px;
+  text-align: center;
+  border-radius: 5px;
+  border-style: solid;
+  border-color:rgb(102, 102, 207);
+}
+
 
 .card-header-rounded{
   background-color:powderblue;
@@ -111,7 +122,7 @@ body {
 
 .card-star {
   max-width: 33rem;
-  background: #fff;
+  background: #eeeeee;
   margin: 0 1rem;
   padding: 1rem;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);

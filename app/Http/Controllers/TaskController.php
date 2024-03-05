@@ -22,6 +22,18 @@ class TaskController extends RootController
             $query = $query->where('mom_point_discussed.remark', 'like', '%'.$request->seachTerm.'%');
         }
 
+        if ($request->searchStatus != '')
+        {
+            if ($request->searchStatus != "-1")
+                $query = $query->where('mom_action_plan.status', $request->searchStatus);
+        }
+        else
+        {
+            $query = $query->where('mom_action_plan.status',ActionPlan::STATUS_ON_PROGRESS );
+        }
+
+        $request->flash();
+
         $query = $query ->select('mom_action_plan.*','mom_point_discussed.remark as remark_point','mom_point_discussed.rate','core_user.name')
         ->leftJoin('mom_point_discussed', function($join)
                          {

@@ -272,14 +272,18 @@ let counter = 0;
         let year = objectDate.getFullYear();
 
         var cols = "";
+        var classNote = 'col-8';
+        if (mode == 1)
+            classNote = 'col-6';
+
         cols += '<td class="col-1"></td>';
-        cols += '<td class="col-8" id="col'+id+'">'+remark +'<p>Note : </p>'+notes+'</td>';
-        cols += '<td class="col-sm-3">'+picName+'</td>';
-        cols += '<td class="col-sm-3">'+day+'-'+textMonth+'-'+year+'</td>';
+        cols += '<td class="'+classNote+'" id="col'+id+'">'+remark +'<p>Note : </p>'+notes+'</td>';
+        cols += '<td class="col-2">'+picName+'</td>';
+        cols += '<td class="col-1">'+day+'-'+textMonth+'-'+year+'</td>';
 
         if (mode == 1)
         {
-            cols += '<td class="col-sm-3">'+status+'</td>';
+            cols += '<td class="col-2">'+status+'</td>';
         }
         return cols;
     }
@@ -375,6 +379,7 @@ let counter = 0;
     function updateMeeting()
     {
         var idMeeting = document.getElementById('txtId').value;
+        var idCalendar = document.getElementById('txtIdCalendar').value;
         var topic = document.getElementById('txtTopic').value;
         var location = document.getElementById('txtLocation').value;
         var momDate = document.getElementById('momDate').value;
@@ -408,6 +413,7 @@ let counter = 0;
                 type: 'post',
                 data: {
                     id : idMeeting,
+                    idCalendar : idCalendar,
                     topic : topic,
                     location : location,
                     momDate : momDate,
@@ -539,6 +545,7 @@ let counter = 0;
     <?php 
     date_default_timezone_set('Asia/Jakarta');
     $id = "";
+    $idCalendar = "";
     $topic = "";
     $location = "";
     $momDate = Date("Y-m-d");
@@ -557,6 +564,7 @@ let counter = 0;
     {
         
         $id = $data["meeting"]->mom_id;
+        $idCalendar = $data["meeting"]->calendar_id;
         $topic = $data["meeting"]->topic;
         $location = $data["meeting"]->location;
         $startTime = date_format($data["meeting"]->start_time,"H:m");
@@ -601,6 +609,7 @@ let counter = 0;
                     <div class="form-group">
                         <label for="title"><b>Location</b></label>
                         <input type="hidden" id="txtId" value=" <?php echo $id; ?>"/>
+                        <input type="hidden" id="txtIdCalendar" value=" <?php echo $idCalendar; ?>"/>
                         <input type="text" class="form-control" id="txtLocation" name="txtLocation" value="<?php echo $location; ?>">
                     </div>
                 </div>

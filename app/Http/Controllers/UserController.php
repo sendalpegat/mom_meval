@@ -26,11 +26,12 @@ class UserController extends RootController
             $emailUser = array();
             $results = DB::table('core_user')
             ->select('email','name')
+            ->where('status', User::ACTIVE)
             ->get()
             ->toArray();
             foreach($results as $result)
             {
-                $emailUser = $emailUser + array($result->name => $result->email);
+                $emailUser = $emailUser + array($result->email => $result->name);
             }
 
             //get data from odoo
@@ -42,16 +43,13 @@ class UserController extends RootController
             for ($i = 0; $i < count($dataUsers); $i ++)
             {
                 $email = $dataUsers[$i]['work_email'];
-            
                 if (!is_null($email))
                 {
                     if ($email != '')
                     {
+                        $name = $dataUsers[$i]['name'];
                         if (!in_array($email, $emails))
                         {
-
-                            $name = $dataUsers[$i]['name'];
-                            
                             $status = $dataUsers[$i]['active'];
                             $departmentIds = $dataUsers[$i]['department_id'];
                             $departmentId = "-";
@@ -81,7 +79,8 @@ class UserController extends RootController
                                 'email' => $email
                             ];
 
-                            if (in_array($email, array_values($emailUser)))
+                            
+                            if (array_key_exists($email,$emailUser))
                                 $res = DB::table('core_user')->where($filter)->update($update);
                             else
                             {
@@ -98,6 +97,19 @@ class UserController extends RootController
                                 ); 
                             }
                             array_push($emails,$email);
+                        }
+                        else
+                        {
+                            $filter = [
+                                'email' => $email
+                            ];
+                            $update = [
+                                'name' => $name, 
+                                'status' => $status,
+                                'devision_id' => $departmentId,
+                                'parent' => $parent
+                            ];
+                            DB::table('core_user')->where($filter)->update($update);
                         }
                     }
                 }

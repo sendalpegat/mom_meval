@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Session;
 use App\Http\Controllers\RootController;
+use App\Models\User;
 
 class LoginController extends RootController
 {
@@ -23,6 +24,7 @@ class LoginController extends RootController
         $data = [
             'email' => $request->input('email'),
             'password' => $request->input('password'),
+            'status' => User::ACTIVE
         ];
 
         if (Auth::Attempt($data)) {

@@ -7,12 +7,23 @@
     </div>
     <br>
     <div class="row" style="margin-bottom: 10px;">
-        <div class="col-md-8">
+        <div class="col-md-6">
         </div>
-        <div class="col-md-4" style="text-align: right;">
+        <div class="col-md-6" style="text-align: right;">
         <form action="{{route('meeting/tasks')}}" method="GET">
-            <input type="text" name="seachTerm" placeholder="Search task by remark .." value="{{ old('seachTerm') }}">
-            <input type="submit" value="Search">
+        <?php $oldStatus = App\Models\meeting\ActionPlan::STATUS_ON_PROGRESS;
+              if ( old('searchStatus') != "")
+                $oldStatus = old('searchStatus');
+                    
+        ?>
+            Status : <select id="searchStatus" name="searchStatus" >
+                        <option value="-1" >All</option>
+                        <option value="{{ App\Models\meeting\ActionPlan::STATUS_ON_PROGRESS}}" >{{App\Models\meeting\ActionPlan::getStatusName(App\Models\meeting\ActionPlan::STATUS_ON_PROGRESS)}}</option>
+                        <option value="{{ App\Models\meeting\ActionPlan::STATUS_DONE}}">{{App\Models\meeting\ActionPlan::getStatusName(App\Models\meeting\ActionPlan::STATUS_DONE)}}</option>
+                    </select>
+
+            Remark : <input type="text" name="seachTerm" value="{{ old('seachTerm') }}">
+            <button class="btn btn-primary" type="submit">Search <i class="fa fa-search"></i></button>
         </form>
         </div>
     </div>
@@ -35,4 +46,8 @@
     </table>
     <input type="hidden" name="hidden_page" id="hidden_page" value="1" />
 </div>
+<script>
+    var oldStatus = "<?php echo $oldStatus; ?>";
+    document.getElementById('searchStatus').value = oldStatus;
+</script>
 @endsection

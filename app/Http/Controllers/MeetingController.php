@@ -13,6 +13,8 @@ use App\Models\User;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\RootController;
 use App\Http\Controllers\UserController;
+use Spatie\GoogleCalendar\Event;
+use Illuminate\Support\Carbon;
 
 class MeetingController extends RootController
 {
@@ -183,6 +185,24 @@ class MeetingController extends RootController
             $res = "success";
             $msg = 'Meeting saved successfully.';
 
+            //create google calendar
+            // $event = new Event();
+            // $event->name = $request->get('topic','');
+            // $startTime = $request->get('momDate')." ".$request->get('startTime');
+            // $endTime = $request->get('momDate')." ".$request->get('endTime');
+            // $event->startDateTime = Carbon::parse($startTime);
+            // $event->endDateTime = Carbon::parse($endTime);
+            // for ($i = 0; $i < $countPartisipants; $i++) 
+            // {
+            //     $event->addAttendee(['email' => $partisipants[$i]]);
+            // }
+            // $newEvent = $event->save();
+            // $idCalendar = $newEvent->id;
+
+            // //update id calendar
+            // DB::table('mom_meeting')->where(["mom_id"=>$momId])->update(['calendar_id' =>$idCalendar]);
+
+
             DB::commit();
 
             redirect('meeting');
@@ -313,10 +333,27 @@ class MeetingController extends RootController
             $meeting->duration = $request->get('duration');
             $meeting->updated_by = Auth::user()->email;
             $meeting->updated_at = date("Y-m-d h:i:s");
-            $meeting->update();                
+            $meeting->update();  
+            
+            //update google calendar
+            // $eventId = $request->get('idCalendar','');
+            // if ($eventId != '')
+            // {
+            //     $event = Event::find($eventId);
+            //     $event->name = $request->get('topic','');
+            //     $startTime = $request->get('momDate')." ".$request->get('startTime');
+            //     $endTime = $request->get('momDate')." ".$request->get('endTime');
+            //     $event->startDateTime = Carbon::parse($startTime);
+            //     $event->endDateTime = Carbon::parse($endTime);
+            //     // for ($i = 0; $i < $countPartisipants; $i++) 
+            //     // {
+            //         // $event->addAttendee(['email' => 'ekitestakun@gmail.com']);
+            //     // }
+            //     $event->save(); 
+            // }
 
-            //delete mom discussed first
-            DB::table("mom_point_discussed")->where("mom_id",$id)->delete();
+            // //delete mom discussed first
+            // DB::table("mom_point_discussed")->where("mom_id",$id)->delete();
 
             //save point discussed
             foreach ($request->get('listPointDiscusseds') as $point) 
@@ -405,6 +442,14 @@ class MeetingController extends RootController
             //delete mom action plan first
             DB::table("mom_action_plan")->where("mom_id",$id)->delete();
 
+            //delete google calendar
+            // $eventId = $request->idCalendar;
+            // if ($eventId != '')
+            // {
+            //     $event = Event::find($eventId);
+            //     $event->delete();
+            // }
+            
             $delete =  Meeting::destroy($id);
             if ($delete)
             {

@@ -52,7 +52,8 @@
                 }
             } 
             ?>
-            <input type="submit" value="Search">
+            <button class="btn btn-primary" type="submit">Search <i class="fa fa-search"></i></button>
+            
         </form>
         </div>
     </div>
@@ -63,12 +64,12 @@
      <thead>
       <tr>
        <th width="22%" >Topic @sortablelink('topic',new \Illuminate\Support\HtmlString('&#8645;'))</th>
-       <th width="20%" >Location</th>
+       <th width="15%" >Location</th>
        <th width="14%">Created by @sortablelink('created_at',new \Illuminate\Support\HtmlString('&#8645;'))</th>
        <th width="14%">Upated by </th>
        <th width="15%">Department</th>
        <th width="10%">Status</th>
-       <th width="5%">Action</th>
+       <th width="10%">Action</th>
       </tr>
      </thead>
      <tbody>

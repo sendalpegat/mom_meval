@@ -8,11 +8,13 @@
         "php": "^7.3|^8.0",
         "darkaonline/ripcord": "^0.2.0",
         "fruitcake/laravel-cors": "^2.0",
+        "google/apiclient": "^2.15",
         "guzzlehttp/guzzle": "^7.0.1",
         "kyslik/column-sortable": "^6.5",
         "laravel/framework": "^8.75",
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
+        "spatie/laravel-google-calendar": "^3.7",
         "staudenmeir/laravel-cte": "^1.0"
     },
     "require-dev": {
