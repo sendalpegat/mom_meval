@@ -36,3 +36,5 @@ Route::get('meeting', [MeetingController::class, 'index'])->name('meeting')->mid
 Route::get('meeting/tasks', [TaskController::class, 'index'])->name('meeting/tasks')->middleware('auth');
 Route::post('/meeting/tasks/update', [TaskController::class ,'updateStatus'])->name('meeting/tasks/update')->middleware('auth');
 Route::get('meeting/create', [MeetingController::class, 'create'])->name('meeting/create')->middleware('auth');
+
+Route::get('meeting/calendar',[MeetingController::class, 'calendar'])->name('meeting/calendar')->middleware('auth');

@@ -492,4 +492,14 @@ class MeetingController extends RootController
             ];
         }
     }
+
+    /**
+     * Delete the meeting 
+     * @param id the id of meeting
+     */
+    public function calendar(Request $request)
+    {
+        $data = array();
+        return view('meeting.calendar', compact('data'));
+    }
 }

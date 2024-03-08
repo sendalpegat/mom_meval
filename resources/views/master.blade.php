@@ -54,6 +54,10 @@ $.ajaxSetup({
                         <a href="{{route('meeting/tasks')}}" class="nav-link px-0 align-middle text-dark font-weight-bold">
                             <i class="fs-4 bi bi-journal-check"></i> <span class="ms-1 d-none d-sm-inline">Action Plan</span></a>
                     </li>
+                    <li>
+                        <a href="{{route('meeting/calendar')}}" class="nav-link px-0 align-middle text-dark font-weight-bold">
+                            <i class="fs-4 bi bi-calendar-week"></i> <span class="ms-1 d-none d-sm-inline">Calendar</span></a>
+                    </li>
                     <a href="{{route('user')}}" class="nav-link px-0 align-middle text-dark font-weight-bold">
                             <i class="fs-4 bi bi-person-fill"></i> <span class="ms-1 d-none d-sm-inline">List Users</span></a>
                     <li>
