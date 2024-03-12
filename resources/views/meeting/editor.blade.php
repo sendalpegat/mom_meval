@@ -5,6 +5,7 @@
 <script>
 var stars =  document.getElementsByClassName("star");
 let counter = 0;
+let lastLineNumberTask = 0;
     
     $(document).ready(function () {
         // add row for point discussed table
@@ -15,7 +16,7 @@ let counter = 0;
             cols += '<td class="col-1"><span id="rate-'+no+'-1" onclick="gfg(1,this.id)" class="star">★</span><span id="rate-'+no+'-2" onclick="gfg(2,this.id)" class="star">★</span><span id="rate-'+no+'-3" onclick="gfg(3,this.id)" class="star">★</span></td>';
             cols += '<td class="col-12"><input type="text" class="form-control" maxlength="50" id="txtRemark-'+no+'" name="txtRemark-' + no + '" onchange="onRemarkChanged(this.id,this.value)"/><input type="hidden" id="txtRate-'+no+'" name="txtRate-'+no+'" value="0"></td>';
             cols += '<td class="col-sm-1"><button type="button" id="btnDel-'+no+'" class="ibtnDel btn btn-md btn-danger"><i class="fa fa-trash"></i></button></td>';
-            cols += '<td class="col-sm-1"><button type="button" class="btn btn-success btn-md" id="myBtn" data-bs-toggle="modal" data-bs-target="#myModal" onclick="initDialog('+no+')">Task</button></td>'
+            cols += '<td class="col-sm-1"><button type="button" class="btn btn-success btn-md" id="myBtn" data-bs-toggle="modal" data-bs-target="#myModal" onclick="initDialog('+-1+','+no+')">Add Task</button></td>'
 
             newRow.append(cols);
             $("table.order-list").append(newRow);
@@ -25,7 +26,7 @@ let counter = 0;
         $("table.order-list").on("click", ".ibtnDel", function (event) {
             $(this).closest("tr").remove();
             var idBtn = event.target.id;
-            removeRowTaskTable(idBtn.split("-")[1]);
+            removeRowTaskTable(-1,idBtn.split("-")[1]);
             //counter -= 1
         });
 
@@ -153,17 +154,32 @@ let counter = 0;
     let picSelect = document.getElementById('picSelect');
 
     //init dialog before show
-    function initDialog(lineNumber)
+    function initDialog(lineNumber, indexPointDisccuss)
     {
+        console.log('init '+indexPointDisccuss+","+lineNumber);
+        document.getElementById('txtIndexPoint').value = indexPointDisccuss;
         document.getElementById('txtLineNumber').value = lineNumber;
-        document.getElementById('txtRemarkDialog').value = document.getElementById('txtRemark-'+lineNumber).value
+        document.getElementById('txtRemarkDialog').value = document.getElementById('txtRemark-'+indexPointDisccuss).value
 
-        if (mapTasks.has(document.getElementById('txtLineNumber').value))
+        if (mapTasks.has(document.getElementById('txtIndexPoint').value))
         {
-            document.getElementById('txtStatus').value = mapTasks.get(document.getElementById('txtLineNumber').value).get("status");
-            document.getElementById('picSelect').value = mapTasks.get(document.getElementById('txtLineNumber').value).get("pic");
-            notes.setData(mapTasks.get(document.getElementById('txtLineNumber').value).get("notes"));
-            document.getElementById('dueDate').value = mapTasks.get(document.getElementById('txtLineNumber').value).get("dueDate");
+            console.log('a');
+            let tasks = mapTasks.get(document.getElementById('txtIndexPoint').value);
+            if (tasks.has(document.getElementById('txtLineNumber').value))
+            {
+                console.log('b');
+                document.getElementById('txtStatus').value = tasks.get(document.getElementById('txtLineNumber').value).get("status");
+                document.getElementById('txtRemarkTask').value = tasks.get(document.getElementById('txtLineNumber').value).get('remarkTask');
+                document.getElementById('picSelect').value = tasks.get(document.getElementById('txtLineNumber').value).get("pic");
+                notes.setData(tasks.get(document.getElementById('txtLineNumber').value).get("notes"));
+                document.getElementById('dueDate').value = tasks.get(document.getElementById('txtLineNumber').value).get("dueDate");
+            }
+            else
+            {
+                document.getElementById('picSelect').value = "";
+                notes.setData("<p></p>");
+                document.getElementById('dueDate').valueAsDate = new Date();
+            }
         }
         else
         {
@@ -177,92 +193,127 @@ let counter = 0;
                 dropdownParent: $("#myModal")
             });
         }); 
+
     }
 
     //save task to map
-    function saveTask() 
-    {
-        $('#myModal').modal('hide');
+    // function saveTask() 
+    // {
+        
 
-        var added = true;
-        if (mapTasks.has(document.getElementById('txtLineNumber').value))
-            added = false;
+    //     var added = true;
+    //     if (mapTasks.has(document.getElementById('txtLineNumber').value))
+    //         added = false;
 
-        var mapTask = new Map();
-        var lineNumber = document.getElementById('txtLineNumber').value;
-        var compPic = document.getElementById('picSelect');
-        var picName = compPic.options[compPic.selectedIndex].text;
-        var dueDate = document.getElementById('dueDate').value;
-        var remark = document.getElementById('txtRemarkDialog').value;
-        var status = document.getElementById('txtStatus').value;
-        mapTask.set("pic",document.getElementById('picSelect').value);
-        mapTask.set("notes",notes.getData());
-        mapTask.set("dueDate",dueDate);
-        mapTask.set("picName",picName);
-        mapTask.set("status",status);
-        mapTasks.set(document.getElementById('txtLineNumber').value,mapTask);
+    //     var mapTask = new Map();
+        // var lineNumber = document.getElementById('txtLineNumber').value;
+        // var compPic = document.getElementById('picSelect');
+        // var picName = compPic.options[compPic.selectedIndex].text;
+        // var dueDate = document.getElementById('dueDate').value;
+        // var remark = document.getElementById('txtRemarkDialog').value;
+        // var status = document.getElementById('txtStatus').value;
+    //     mapTask.set("pic",document.getElementById('picSelect').value);
+    //     mapTask.set("notes",notes.getData());
+    //     mapTask.set("dueDate",dueDate);
+    //     mapTask.set("picName",picName);
+    //     mapTask.set("status",status);
+    //     mapTasks.set(document.getElementById('txtLineNumber').value,mapTask);
 
-        if (added)
-        {
-            addRowTaskTable(remark, lineNumber, picName,dueDate,notes.getData(), status);
-        }
-        else
-        {
-            updateTaskTable(lineNumber, remark, picName,dueDate,notes.getData(), status);
-        }
+    //     if (added)
+    //     {
+    //         addRowTaskTable(remark, lineNumber, picName,dueDate,notes.getData(), status);
+    //     }
+    //     else
+    //     {
+    //         updateTaskTable(lineNumber, remark, picName,dueDate,notes.getData(), status);
+    //     }
 
-    }
+    // }
 
     //when remark update then update the remark of task
     function onRemarkChanged(id,val) 
     {
         var lineNumber = id.split("-")[1];
-        if (mapTasks.has(lineNumber))
+        refreshTaskTable();
+    }
+
+    function refreshTaskTable()
+    {
+        $('#tb').empty();
+        let no = 1;
+        for (let [key,value] of mapTasks)
         {
-            var picName = mapTasks.get(lineNumber).get("picName");
-            var dueDate = mapTasks.get(lineNumber).get("dueDate");
-            var notes = mapTasks.get(lineNumber).get("notes");
-            updateTaskTable(lineNumber, val, picName, dueDate, notes);
+            let remark = document.getElementById('txtRemark-'+key).value;
+            let tasks = mapTasks.get(key);
+            for (let [key2, value2] of tasks)
+            {
+                console.log("task");
+                var picName = tasks.get(key2).get("picName");
+                var dueDate = tasks.get(key2).get("dueDate");
+                var notes = tasks.get(key2).get("notes");
+                var status = tasks.get(key2).get("status");
+                addRowTaskTable(no, remark, key2, key, picName,dueDate,notes, status);
+                no++;
+            }
         }
     }
 
     //add row of task table
-    function addRowTaskTable(remark, lineNumber, picName,dueDate,notes, status)
+    function addRowTaskTable(no, remark, lineNumber, indexPoint, picName,dueDate,notes, status)
     {
         var newRow = $('<tr id="row-'+lineNumber+'">');
         let objectDate = new Date(dueDate);
         let day = objectDate.getDate();
         let month = objectDate.getMonth() + 1;
         let year = objectDate.getFullYear();
-        var cols =  getCols(remark,picName, dueDate, notes, lineNumber, status) +"</tr>";
+        var cols =  getCols(no, remark,picName, dueDate, notes, lineNumber, indexPoint, status) +"</tr>";
         newRow.append(cols);
         $("table.table-striped").append(newRow);
     }
 
     //remove row taskTable
-    function removeRowTaskTable(id)
+    function removeRowTaskTable(id, indexPoint)
     {
-        var idRow = "row-"+id;
-        document.getElementById(idRow).remove();
+        if (id != -1)
+        {
+            var idRow = "row-"+id;
+            document.getElementById(idRow).remove();
+        }
+        else
+        {
+            
+            if (mapTask.has(indexPoint.toString()))
+            {
+                let tasks = mapTask.get(indexPoint.toString());
+                for (let [key, value] of tasks)
+                {
+                    var idRow = "row-"+key;
+                    document.getElementById(idRow).remove();
+                }
+            }
+        }
+        
+
         //$(idCol).parent().replaceWith("");
     }
 
     //update task table
-    function updateTaskTable(id,remark,picName, dueDate, notes, status)
-    {
-        var cols = '<tr id="row-'+id+'">'
-                    +getCols(remark,picName, dueDate, notes,id, status)
-                    +'</tr>';
-        var idCol = "td#col"+id;
-        $(idCol).parent().replaceWith(cols);
-    }
+    // function updateTaskTable(id, indexPoint, remark,picName, dueDate, notes, status)
+    // {
+    //     var cols = '<tr id="row-'+id+'">'
+    //                 +getCols(remark,picName, dueDate, notes,id, indexPoint, status)
+    //                 +'</tr>';
+    //     var idCol = "td#col"+id;
+    //     $(idCol).parent().replaceWith(cols);
+    // }
 
     //create coloumn for task table
-    function getCols(remark,picName, dueDate, notes, id, status)
+    function getCols(no, remark,picName, dueDate, notes, id, indexPoint, status)
     { 
         var mode = <?php echo $data["viewMode"];?>;
         let objectDate = new Date(dueDate);
         let day = objectDate.getDate();
+        let statusName = getStatusName(status);
 
         let month = objectDate.getMonth() + 1;
         let textMonth = month;
@@ -272,20 +323,123 @@ let counter = 0;
         let year = objectDate.getFullYear();
 
         var cols = "";
-        var classNote = 'col-8';
+        var classNote = 'col-7';
         if (mode == 1)
-            classNote = 'col-6';
+            classNote = 'col-5';
 
-        cols += '<td class="col-1"></td>';
+        cols += '<td class="col-1">'+no+'</td>';
         cols += '<td class="'+classNote+'" id="col'+id+'">'+remark +'<p>Note : </p>'+notes+'</td>';
         cols += '<td class="col-2">'+picName+'</td>';
         cols += '<td class="col-1">'+day+'-'+textMonth+'-'+year+'</td>';
 
         if (mode == 1)
         {
-            cols += '<td class="col-2">'+status+'</td>';
+            cols += '<td class="col-2">'+statusName+'</td>';
         }
+
+        cols += '<td class="col-1">'
+        +'<a href="#" onclick="initDialog('+id+','+indexPoint+')" data-bs-toggle="modal" data-bs-target="#myModal"> <span class="btn btn-success"><i class="bi bi-pencil-fill"></i></span></a> <br><br>'
+        +'<a href="javascript:deleteTask('+id+','+indexPoint+')"> <span class="btn btn-danger"><i class="bi bi-trash3-fill"></i></span></a>'
+        +'</td>';
+
         return cols;
+    }
+
+    function saveTask()
+    {
+        let indexPointDiscuss = document.getElementById('txtIndexPoint').value; 
+        let lineNumber = document.getElementById('txtLineNumber').value;
+        let compPic = document.getElementById('picSelect');
+        let pic = document.getElementById('picSelect').value;
+        let picName = compPic.options[compPic.selectedIndex].text;
+        let dueDate = document.getElementById('dueDate').value;
+        let remark = document.getElementById('txtRemarkDialog').value;
+        let status = document.getElementById('txtStatus').value;
+        let remarkTask = document.getElementById('txtRemarkTask').value;
+
+
+        if (lineNumber == -1)
+            addTask(indexPointDiscuss, pic, picName, notes.getData(), dueDate, status,remark,remarkTask);
+        else
+            updateTask(lineNumber, indexPointDiscuss, pic,picName, notes.getData(), dueDate, status,remark,remarkTask);
+        
+        $('#myModal').modal('hide');
+    }
+
+    function addTask(indexPointDiscuss, pic, picName, notes, dueDate, status, remark, remarkTask)
+    {
+        let id = lastLineNumberTask + 1;
+        let task = new Map();
+        let tasks = new Map();
+        if (mapTasks.has(indexPointDiscuss.toString()))
+            tasks = mapTasks.get(indexPointDiscuss.toString());
+        
+        task.set('pic',pic);
+        task.set('picName',picName);
+        task.set('notes',notes);
+        task.set('dueDate',dueDate);
+        task.set('status',status);
+        task.set('remarkTask',remarkTask);
+
+        tasks.set(id.toString(),task);
+        mapTasks.set(indexPointDiscuss.toString(), tasks);
+console.log('id '+id+","+indexPointDiscuss);
+        refreshTaskTable();
+        lastLineNumberTask++;
+    }
+
+    //delete task in taskdialog
+    function deleteTask(lineNumber, indexPointDiscuss)
+    {
+        if (mapTasks.has(indexPointDiscuss.toString()))
+        {
+            let tasks = mapTasks.get(indexPointDiscuss.toString());
+            tasks.delete(lineNumber.toString());
+            mapTasks.set(indexPointDiscuss.toString(), tasks);
+
+            refreshTaskTable();
+        }
+    }
+
+    function updateTask(lineNumber, indexPointDiscuss, pic,picName, notes, dueDate, status, remark, remarkTask)
+    {
+        if (mapTasks.has(indexPointDiscuss.toString()))
+        {
+            let tasks = mapTasks.get(indexPointDiscuss.toString());
+            if (tasks.has(lineNumber.toString()))
+            {
+                let task = tasks.get(lineNumber.toString());
+                task.set('pic',pic);
+                task.set('picName',picName);
+                task.set('notes',notes);
+                task.set('dueDate',dueDate);
+                task.set('status',status);
+                task.set('remarkTask',remarkTask);
+
+                tasks.set(lineNumber.toString(), task);
+                mapTasks.set(indexPointDiscuss.toString(), tasks);                
+            }
+            mapTasks.set(indexPointDiscuss.toString(), tasks);
+            refreshTaskTable();
+        }
+    }
+
+    
+    function getStatusName(status)
+    {
+        let statusName = "";
+        switch(status) {
+            case '0':
+                statusName = "On Progress";
+                break;
+            case '1':
+                statusName = "Done";
+                break;
+            default:
+                statusName = "Unknown Status"
+        }
+
+        return statusName;
     }
 
     function save(mode)
@@ -397,16 +551,23 @@ let counter = 0;
         //set the poin discusc and task
         var listPointDiscusseds = new Array;
         var listTask = new Array();
-        for (let [key, value] of mapTasks) {
+        for (let [key, value] of mapTasks) 
+        {
             let rate =  document.getElementById('txtRate-'+key).value;
             let remark =  document.getElementById('txtRemark-'+key).value;
 
             listPointDiscusseds = listPointDiscusseds.concat( [{'lineNumber': key,'rate':rate,'remark':remark}]);
             
-            let pic = mapTasks.get(key).get('pic');
-            let notes = mapTasks.get(key).get('notes');
-            let dueDate = mapTasks.get(key).get('dueDate');
-            listTask = listTask.concat( [{'index':key,'lineNumber': key,'pic':pic,'notes':notes, "dueDate":dueDate}])
+            let tasks = mapTasks.get(key);
+            for (let [key2, value2] of tasks)
+            {
+                let pic = tasks.get(key2).get('pic');
+                let notes = tasks.get(key2).get('notes');
+                let dueDate = tasks.get(key2).get('dueDate');
+                let status = tasks.get(key2).get('status');
+                let remarkTask = tasks.get(key2).get('remarkTask');
+                listTask = listTask.concat( [{'index':key,'lineNumber': key2,'pic':pic,'notes':notes, "dueDate":dueDate, "status":status, "remarkTask":remarkTask}])
+            }
         }
 
         $.ajax({
@@ -454,20 +615,23 @@ let counter = 0;
         var listTask = new Array();
         for (let [key, value] of mapTasks) 
         {
-            var element =  document.getElementById('txtRate-'+key);
-            if (typeof(element) != 'undefined' && element != null)
-            {
-                let rate =  document.getElementById('txtRate-'+key).value;
-                let remark =  document.getElementById('txtRemark-'+key).value;
+            let rate =  document.getElementById('txtRate-'+key).value;
+            let remark =  document.getElementById('txtRemark-'+key).value;
 
-                listPointDiscusseds = listPointDiscusseds.concat( [{'lineNumber': key,'rate':rate,'remark':remark}]);
-                
-                let pic = mapTasks.get(key).get('pic');
-                let notes = mapTasks.get(key).get('notes');
-                let dueDate = mapTasks.get(key).get('dueDate');
-                listTask = listTask.concat( [{'index':key,'lineNumber': key,'pic':pic,'notes':notes, "dueDate":dueDate}]);
+            listPointDiscusseds = listPointDiscusseds.concat( [{'lineNumber': key,'rate':rate,'remark':remark}]);    
+            let tasks = mapTasks.get(key);
+            for (let [key2, value2] of tasks)
+            {
+                var element =  document.getElementById('txtRate-'+key);
+                if (typeof(element) != 'undefined' && element != null)
+                {
+                    let pic = tasks.get(key2).get('pic');
+                    let notes = tasks.get(key2).get('notes');
+                    let dueDate = tasks.get(key2).get('dueDate');
+                    listTask = listTask.concat( [{'index':key,'lineNumber': key2,'pic':pic,'notes':notes, "dueDate":dueDate}]);
+                    console.log('add '+key+","+key2);
+                }
             }
-            
         }
 
         $.ajax({
@@ -504,7 +668,7 @@ let counter = 0;
                 cols += '<td class="col-1"><span id="rate-'+no+'-1" onclick="gfg(1,this.id)" class="star">★</span><span id="rate-'+no+'-2" onclick="gfg(2,this.id)" class="star">★</span><span id="rate-'+no+'-3" onclick="gfg(3,this.id)" class="star">★</span></td>';
                 cols += '<td class="col-12"><input type="text" class="form-control" id="txtRemark-'+no+'" name="txtRemark-' + no + '" onchange="onRemarkChanged(this.id,this.value)" value="'+remark+'" /><input type="hidden" id="txtRate-'+no+'" name="txtRate-'+no+'" value="0"></td>';
                 cols += '<td class="col-sm-1"><button type="button" class="ibtnDel btn btn-md btn-danger"><i class="fa fa-trash"></i></button></td>';
-                cols += '<td class="col-sm-1"><button type="button" class="btn btn-success btn-md" id="myBtn" data-bs-toggle="modal" data-bs-target="#myModal" onclick="initDialog('+no+')">Task</button></td>'
+                cols += '<td class="col-sm-1"><button type="button" class="btn btn-success btn-md" id="myBtn" data-bs-toggle="modal" data-bs-target="#myModal" onclick="initDialog('+-1+','+no+')">Add Task</button></td>'
 
                 newRow.append(cols);
                 $("table.order-list").append(newRow);
@@ -522,18 +686,30 @@ let counter = 0;
         }
     }
 
-    function setTask(lineNumber,pic, picName,notes,dueDate, status)
+    function setTask(lineNumber, indexPointDiscussed, pic, picName,notes,dueDate, status, remarkTask)
     {
         var mapTask = new Map();
-        var remark = document.getElementById('txtRemark-'+lineNumber).value;
-        mapTask.set("pic",pic);
-        mapTask.set("notes",notes);
-        mapTask.set("dueDate",dueDate);
-        mapTask.set("picName",picName);
-        mapTask.set("status",status);
+        var remark = document.getElementById('txtRemark-'+indexPointDiscussed).value;
 
-        mapTasks.set(lineNumber.toString(),mapTask);
-        addRowTaskTable(remark, lineNumber, picName,dueDate,notes, status);
+        let tasks = new Map();
+        if (mapTasks.has(indexPointDiscussed.toString()))
+            tasks = mapTasks.get(indexPointDiscussed.toString());
+        
+        let task = new Map();
+        task.set("pic",pic);
+        task.set("notes",notes);
+        task.set("dueDate",dueDate);
+        task.set("picName",picName);
+        task.set("status",status);
+        task.set("remarkTask",remarkTask);
+
+        tasks.set(lineNumber.toString(), task);
+        mapTasks.set(indexPointDiscussed.toString(),tasks);
+        if (lastLineNumberTask < lineNumber)
+            lastLineNumberTask = parseInt(lineNumber);
+console.log('set task '+lineNumber+","+indexPointDiscussed);
+
+        refreshTaskTable();
     }
 </script>
 <div>
@@ -670,7 +846,7 @@ let counter = 0;
                     <thead> 
                         <tr>
                             <td style="background-color:#e6e6e6">Point Discussed</td>
-                            <td style="background-color:#e6e6e6">Remark</td>
+                            <td style="background-color:#e6e6e6; vertical-align: middle;">Remark</td>
                             <td style="background-color:#e6e6e6"></td>
                             <td style="background-color:#e6e6e6"></td>
                         </tr>
@@ -688,7 +864,7 @@ let counter = 0;
                             <td class="col-sm-1"><a class="deleteRow"></a>
                             </td>
                             <td class="col-sm-1"> 
-                                <button type="button" class="btn btn-success btn-md" id="myBtn" data-bs-toggle="modal" data-bs-target="#myModal" onclick="initDialog(1)">Task</button>
+                                <button type="button" class="btn btn-success btn-md" id="myBtn" data-bs-toggle="modal" data-bs-target="#myModal" onclick="initDialog(-1,1)">Add Task</button>
                             </td>
                         </tr>
                     </tbody> 
@@ -703,19 +879,20 @@ let counter = 0;
             </div> 
             <br>
             <div class="fixTableHead">
-            <table id="tasTable" class="table table-striped"> 
+            <table id="taskTable" class="table table-striped"> 
                     <thead> 
                         <tr>
-                            <td style="background-color:#e6e6e6">Task</td>
-                            <td style="background-color:#e6e6e6">Remark</td>
-                            <td style="background-color:#e6e6e6">PIC</td>
-                            <td style="background-color:#e6e6e6">Due Date</td>
+                            <td style="background-color:#e6e6e6; vertical-align: middle;">Action Plan</td>
+                            <td style="background-color:#e6e6e6; vertical-align: middle;" >Remark</td>
+                            <td style="background-color:#e6e6e6; vertical-align: middle;">PIC</td>
+                            <td style="background-color:#e6e6e6; vertical-align: middle;">Due Date</td>
                             <?php if ($data["viewMode"] == 1){?>
-                                <td style="background-color:#e6e6e6">Status</td>
+                                <td style="background-color:#e6e6e6; vertical-align: middle;">Status</td>
                             <?php }?>
+                            <td style="background-color:#e6e6e6; vertical-align: middle;">Action</td>
                         </tr>
                     </thead> 
-                    <tbody>
+                    <tbody id="tb">
                     </tbody>
             </table>
             </div>    
@@ -732,9 +909,10 @@ for ($i = 0; $i < count($pointDiscuss); $i++)
 }
 for ($i = 0; $i < count($tasks); $i++)
 {
-    echo "<script> setTask(".$tasks[$i]->line_number.",'"
-    .$tasks[$i]->pic."','".$tasks[$i]->name."','".$tasks[$i]->note.
-    "','".$tasks[$i]->due_date."','".App\Models\meeting\ActionPlan::getStatusName($tasks[$i]->status)."'); </script>";
+    echo "<script> setTask('".$tasks[$i]->line_number
+    ."','".$tasks[$i]->point_discussed_index."','".$tasks[$i]->pic
+    ."','".$tasks[$i]->name."','".$tasks[$i]->note.
+    "','".$tasks[$i]->due_date."','".$tasks[$i]->status."','".$tasks[$i]->remark."'); </script>";
 }
 ?>
 <div class="modal fade" id="myModal" role="dialog" data-bs-focus="false" >
@@ -755,9 +933,11 @@ for ($i = 0; $i < count($tasks); $i++)
                     @endforeach
                     
                 </select>
-                <input type="hidden" id="txtLineNumber" name="txtLineNumber" value="0">
-                <input type="hidden" id="txtRemarkDialog" name="txtLineNumber" value="0">
-                <input type="hidden" id="txtStatus" name="txtStatus" value="<?php echo App\Models\meeting\ActionPlan::getStatusName(App\Models\meeting\ActionPlan::STATUS_ON_PROGRESS)?>">
+                <input type="hidden" id="txtIndexPoint" name="txtIndexPoint" value="1">
+                <input type="hidden" id="txtLineNumber" name="txtLineNumber" value="-1">
+                <input type="hidden" id="txtRemarkDialog" name="txtRemarkDialog" value="0">
+                <input type="hidden" id="txtRemarkTask" name="txtRemarkTask" value="">
+                <input type="hidden" id="txtStatus" name="txtStatus" value="<?php echo App\Models\meeting\ActionPlan::STATUS_ON_PROGRESS ?>">
             </div>
             <br>
             <div><b>Due date :</b> <input type="date" class="form-control" id="dueDate" name="dueDate" placeholder="dd-mm-yyyy"></div>
@@ -766,7 +946,7 @@ for ($i = 0; $i < count($tasks); $i++)
             <textarea id="notes" rows="6" cols="150" class="form-control" value=""></textarea>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-default btn-success" type="submit" name="submit" value="Submit" onclick="saveTask()">Save</button>
+            <button type="button" class="btn btn-default btn-success" onclick="saveTask()">Save</button>
           <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
         </div>
       </div>

@@ -359,7 +359,9 @@ class MeetingController extends RootController
                           'line_number' => $task["lineNumber"],
                           'note' => $task["notes"],
                           'due_date' => $task["dueDate"],
-                          'pic' => $task["pic"])
+                          'pic' => $task["pic"],
+                          'status' => $task['status'],
+                          'remark' => $task['remarkTask'])
                 );
             }
 
