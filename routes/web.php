@@ -23,6 +23,10 @@ Route::post('actionlogin', [LoginController::class, 'actionlogin'])->name('actio
 Route::get('actionlogout', [LoginController::class, 'actionlogout'])->name('actionlogout')->middleware('auth');
 
 Route::get('user', [UserController::class, 'index'])->name('user')->middleware('auth');
+Route::get('user/profile', UserController::class .'@profile')->name('user/profile')->middleware('auth');
+Route::post('/user/edit', [UserController::class ,'update'])->name('user/edit')->middleware('auth');
+Route::post('/user/changePassword', [UserController::class ,'changePassword'])->name('user/changePassword')->middleware('auth');
+Route::get('user/{post}/update', UserController::class .'@show')->name('user/update')->middleware('auth');
 Route::get('user/sync-odoo', [UserController::class, 'syncOdoo'])->name('user/sync-odoo')->middleware('auth');
 
 Route::post('meeting/add', [MeetingController::class, 'store'])->name('meeting/add')->middleware('auth');

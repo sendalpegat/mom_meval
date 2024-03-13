@@ -44,7 +44,7 @@
                     echo '<option value="">All User</option>';
                     for ($i = 0; $i < count($data["users"]); $i++)
                     {
-                        echo '<option value="'.$data["users"][$i]->email.'">'.$data["users"][$i]->name.'</option>';
+                        echo '<option value="'.$data["users"][$i]->id.'">'.$data["users"][$i]->name.'</option>';
                     }
                     ?>
                 </select>

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\RootController;
+use Illuminate\Support\Facades\Auth;
 
 
 class UserController extends RootController
@@ -22,8 +23,10 @@ class UserController extends RootController
         try
         {
             set_time_limit(0);
+            $default_password =  Hash::make("meval-user");
             //get list email id of user
             $emailUser = array();
+            $nameUsers = array();
             $results = DB::table('core_user')
             ->select('email','name')
             ->where('status', User::ACTIVE)
@@ -32,6 +35,7 @@ class UserController extends RootController
             foreach($results as $result)
             {
                 $emailUser = $emailUser + array($result->email => $result->name);
+                array_push($nameUsers, $result->name);
             }
 
             //get data from odoo
@@ -43,11 +47,11 @@ class UserController extends RootController
             for ($i = 0; $i < count($dataUsers); $i ++)
             {
                 $email = $dataUsers[$i]['work_email'];
+                $name = $dataUsers[$i]['name'];
                 if (!is_null($email))
                 {
                     if ($email != '')
                     {
-                        $name = $dataUsers[$i]['name'];
                         if (!in_array($email, $emails))
                         {
                             $status = $dataUsers[$i]['active'];
@@ -81,20 +85,19 @@ class UserController extends RootController
 
                             
                             if (array_key_exists($email,$emailUser))
-                                $res = DB::table('core_user')->where($filter)->update($update);
+                                $this->updateUser($update, $filter);
                             else
                             {
-                                $default_password =  Hash::make("meval-user");
                                 //add user
-                                DB::table('core_user')->insert(
+                                $this->addUser(
                                     array('email' => $email,
-                                        'name' => $name,
-                                        'password' => $default_password,
-                                        'role' => $role,
-                                        'devision_id' => $departmentId,
-                                        'status' => $status,
-                                        'parent' => $parent)
-                                ); 
+                                    'name' => $name,
+                                    'password' => $default_password,
+                                    'role' => $role,
+                                    'devision_id' => $departmentId,
+                                    'status' => $status,
+                                    'parent' => $parent)
+                                );
                             }
                             array_push($emails,$email);
                         }
@@ -109,8 +112,40 @@ class UserController extends RootController
                                 'devision_id' => $departmentId,
                                 'parent' => $parent
                             ];
-                            DB::table('core_user')->where($filter)->update($update);
+                            $this->updateUser($update, $filter);
                         }
+                    }
+                    else
+                    {
+                        if (!in_array($name,$nameUsers))
+                        {
+                            //add user
+                            $this->addUser(
+                                array('email' => '',
+                                'name' => $name,
+                                'password' => $default_password,
+                                'role' => $role,
+                                'devision_id' => $departmentId,
+                                'status' => $status,
+                                'parent' => $parent)
+                            );
+                        }
+                    }
+                }
+                else
+                {
+                    if (!in_array($name,$nameUsers))
+                    {
+                        //add user
+                        $this->addUser(
+                            array('email' => '',
+                            'name' => $name,
+                            'password' => $default_password,
+                            'role' => $role,
+                            'devision_id' => $departmentId,
+                            'status' => $status,
+                            'parent' => $parent)
+                        );
                     }
                 }
             }
@@ -144,6 +179,16 @@ class UserController extends RootController
                 'message'=>'Synchron user fail '
             ];
         }
+    }
+
+    private function addUser(array $user)
+    {
+        DB::table('core_user')->insert($user); 
+    }
+
+    private function updateUser(array $updatedData, array $filter)
+    {
+        DB::table('core_user')->where($filter)->update($updatedData);
     }
 
     public function index(Request $request)
@@ -187,15 +232,15 @@ class UserController extends RootController
     public function getListUserByParent(string $emailParent)
     {
         $rawSql = "WITH RECURSIVE cte AS (
-            SELECT email, name, parent
+            SELECT id, email, name, parent
             FROM core_user tl
             WHERE email = '".$emailParent."' 
             UNION ALL
-            SELECT t2.email, t2.name, t2.parent
+            SELECT t2.id, t2.email, t2.name, t2.parent
             FROM core_user t2
             JOIN cte ON t2.parent= cte.email
         )
-        SELECT email,name FROM cte";
+        SELECT id,email,name FROM cte";
         $userEmails = DB::select($rawSql);
         return $userEmails;
     }
@@ -203,14 +248,14 @@ class UserController extends RootController
     /**
      * Get list of user email by parent
      */
-    public function getListUserEmailByParent(string $emailParent)
+    public function getListUserIdByParent(string $emailParent)
     {
        
         $userEmails = $this->getListUserByParent($emailParent);
         $listUsers = array();
         foreach($userEmails as $userEmail)
         {
-            array_push($listUsers, $userEmail->email);
+            array_push($listUsers, $userEmail->id);
         }
 
         return $listUsers;
@@ -222,10 +267,119 @@ class UserController extends RootController
     public function getAllListUsersThatActive()
     {
         $result = DB::table('core_user')
-        ->select('email','name')
+        ->select('id','email','name')
         ->where("status", User::ACTIVE)
         ->get();
 
         return $result;
+    }
+
+    /**
+     * Get list of email user by list of user id
+     */
+    public function getEmailUserbyListId(array $userIds)
+    {
+        $results = DB::table('core_user')
+        ->select('id','email')
+        ->whereIn("id", $userIds)
+        ->get();
+
+        $listUsers = array();
+        foreach($results as $result)
+        {
+            $listUsers = $listUsers + array($result->id => $result->email);
+        }
+
+        return $listUsers;
+    }
+
+    public function profile()
+    {
+        $userId = Auth::user()->id;
+        return $this->show($userId);
+    }
+
+    public function show($id)
+    {
+        
+        $user = User::find($id);
+        $data = array("viewMode" => self::VIEW_MODE_UPDATE, "user"=>$user);
+        return view('user.editor', compact('data'));
+
+    }
+
+    /**
+     * Update user
+     */
+    public function update(Request $request)
+    {
+        DB::beginTransaction();
+        try 
+        {
+            $id = $request->userId;
+            $name = $request->name;
+            $email = $request->email;
+            $user = User::find($id);
+            $user->name = $name;
+            $user->email = $email;
+            $user->update();  
+
+            DB::commit();
+
+            return $response = [
+                'status'=>'ok',
+                'success'=>true,
+                'message'=>'Update profile successfull'
+            ];
+
+        }catch (Exception $e) {
+            DB::rollback();
+            Log::error($e->getMessage());
+            $response = [
+                'status'=>'ok',
+                'success'=>false,
+                'message'=>'Update profile fail'
+            ];
+        }
+        catch(\Illuminate\Database\QueryException $ex)
+        {
+            DB::rollback();
+            Log::error($ex->getMessage());
+            $errorMessage = $this->getErrorMessage($ex->getCode());
+            return $response = [
+                'status'=>'ok',
+                'success'=>false,
+                'message'=>'Update profile fail. ( '.$errorMessage.' )'
+            ];
+        }
+
+    }
+
+    /**
+     * Changed password
+     */
+    public function changePassword(Request $request)
+    {
+        #Match The Old Password
+        if(!Hash::check($request->oldPassword, Auth::user()->password)){
+
+            return $response = [
+                'status'=>'ok',
+                'success'=>false,
+                'message'=>"Old Password does'n match"
+            ];
+        }
+
+
+        #Update the new Password
+        User::whereId(Auth::user()->id)->update([
+            'password' => Hash::make($request->newPassword)
+        ]);
+
+        return $response = [
+            'status'=>'ok',
+            'success'=>true,
+            'message'=>'Change password successfull'
+        ];
     }
 }

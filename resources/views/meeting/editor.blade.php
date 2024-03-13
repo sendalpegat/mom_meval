@@ -765,7 +765,7 @@ console.log('set task '+lineNumber+","+indexPointDiscussed);
         
         for ($i = 0; $i < count($data["participants"]); $i++)
         {
-            array_push($partisipants, $data["participants"][$i]->email);
+            array_push($partisipants, $data["participants"][$i]->user_id);
         }
 
         $tasks = $data["tasks"];
@@ -828,8 +828,8 @@ console.log('set task '+lineNumber+","+indexPointDiscussed);
                 <?php $users = $data["users"];
                     foreach ($users as $user)
                     {
-                        $select = '<option value="'.$user->email. '" ';
-                        if (in_array($user->email,$partisipants))
+                        $select = '<option value="'.$user->id. '" ';
+                        if (in_array($user->id,$partisipants))
                         {
                             $select .= 'selected="true" ';
                         } 
@@ -929,7 +929,7 @@ for ($i = 0; $i < count($tasks); $i++)
                     <option value="" selected="selected"> Select PIC </option>
                     <?php $users = $data["users"] ?>
                     @foreach ($users as $user)
-                        <option value="{{ $user->email }}">{{ $user->name }}</option>
+                        <option value="{{ $user->id }}">{{ $user->name }}</option>
                     @endforeach
                     
                 </select>

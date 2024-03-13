@@ -40,11 +40,11 @@ class TaskController extends RootController
                              $join->on('mom_point_discussed.mom_id', '=', 'mom_action_plan.mom_id');
                              $join->on('mom_point_discussed.line_number','=','mom_action_plan.point_discussed_index');
                          })
-        ->leftjoin('core_user','core_user.email','=','mom_action_plan.pic');
+        ->leftjoin('core_user','core_user.id','=','mom_action_plan.pic');
         //cek if user as manager filter by devision,created by
         if (Auth::user()->role != User::ADMIN)
         {
-            $listUsers = (new UserController)->getListUserEmailByParent(Auth::user()->email);
+            $listUsers = (new UserController)->getListUserIdByParent(Auth::user()->email);
             $query->whereIn("pic",$listUsers);
         }
         $tasks = $query->paginate(10);

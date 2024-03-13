@@ -20,8 +20,7 @@ class MeetingController extends RootController
 {
     const OBJECT_NAME = "Meeting";
 
-    const VIEW_MODE_ADD = 0;
-    const VIEW_MODE_UPDATE = 1;
+   
     /** show view list of meeting */
     public function index(Request $request)
     {
@@ -37,8 +36,8 @@ class MeetingController extends RootController
         $query = $query->select('mom_meeting.*','user.name as updated_by_name'
                                 ,'user2.name as created_by_name', 'user.devision_id',
                                 DB::raw('case when action_plan.done = action_plan.total then 1 ELSE 0 end AS status'))
-        ->leftjoin('core_user as user','user.email','=','mom_meeting.updated_by')
-        ->leftjoin('core_user as user2','user2.email','=','mom_meeting.created_by')
+        ->leftjoin('core_user as user','user.id','=','mom_meeting.updated_by')
+        ->leftjoin('core_user as user2','user2.id','=','mom_meeting.created_by')
         ->joinSub('select mom_id,SUM( case when STATUS = 1 then 1 else 0 END) done, COUNT(*) AS total from mom_action_plan group by mom_id', 
                 'action_plan', 'action_plan.mom_id', '=', 'mom_meeting.mom_id', 'left');
         // ->joinSub($queryStatus, 'action_plan ', function ($join) {
@@ -52,14 +51,14 @@ class MeetingController extends RootController
 
         //cek if user as manager filter by devision,created by
         $listUsers = array();
-        $userEmails = array();
+        $userIds = array();
         if (Auth::user()->role != User::ADMIN)
         {
             $listUsers = array();
-            $userEmails = (new UserController)->getListUserByParent(Auth::user()->email);
-            foreach($userEmails as $userEmail)
+            $userIds = (new UserController)->getListUserByParent(Auth::user()->email);
+            foreach($userIds as $userEmail)
             {
-                array_push($listUsers, $userEmail->email);
+                array_push($listUsers, $userEmail->id);
             }
             $userId = $request->user;
             $query->where(function ($query) use ($listUsers) {
@@ -67,7 +66,7 @@ class MeetingController extends RootController
                 {
                     $query->select("mom_id")
                           ->from('mom_participants')
-                        ->whereIn("email", $listUsers);
+                        ->whereIn("user_id", $listUsers);
                 })
                 ->orWhereIn('updated_by', $listUsers)
                 ->orWhereIn('created_by', $listUsers);
@@ -83,7 +82,7 @@ class MeetingController extends RootController
         }
         else
         {
-            $userEmails = (new UserController)->getAllListUsersThatActive();
+            $userIds = (new UserController)->getAllListUsersThatActive();
             if ($request->seachDeparment != '')
             {
                 $query = $query->where('user.devision_id',$request->seachDeparment);
@@ -106,7 +105,7 @@ class MeetingController extends RootController
         $task = (new TaskController)->getTotalTaskComplateAndUncomplateByUser($listUsers);
 
         $data = array ("meetings"=>$meetings, "task"=>$task, "departmentIds"=>$departmentIds,
-            "users"=> $userEmails);
+            "users"=> $userIds);
         return view('meeting.list_meeting', compact('data'))->render();
     }
 
@@ -174,18 +173,23 @@ class MeetingController extends RootController
             //save participants
             $partisipants = $request->get('partisipans');
             $countPartisipants = count($request->get('partisipans'));
+            $idPartcipants = array();
             for ($i = 0; $i < $countPartisipants; $i++) 
             {
                 DB::table('mom_participants')->insert(
                     array('mom_id' => $momId,
-                          'email' => $partisipants[$i])
+                          'user_id' => $partisipants[$i])
                 );
+
+                array_push($idPartcipants, $partisipants[$i]);
             }
 
             $res = "success";
             $msg = 'Meeting saved successfully.';
 
             //create google calendar
+            //get the email of particpants
+            $emailParticpants =  (new UserController)->getEmailUserbyListId($idPartcipants);
             $event = new Event();
             $event->name = $request->get('topic','');
             $startTime = $request->get('momDate')." ".$request->get('startTime');
@@ -194,7 +198,13 @@ class MeetingController extends RootController
             $event->endDateTime = Carbon::parse($endTime);
             for ($i = 0; $i < $countPartisipants; $i++) 
             {
-                $event->addAttendee(['email' => $partisipants[$i]]);
+                if ($emailParticpants[$partisipants[$i]] != null)
+                {
+                    $email = $emailParticpants[$partisipants[$i]];
+                    if ($email != '')
+                        $event->addAttendee(['email' => $email]);
+                }
+                
             }
             $newEvent = $event->save();
             $idCalendar = $newEvent->id;
@@ -286,7 +296,7 @@ class MeetingController extends RootController
 
         //participants
         $participants = DB::table('mom_participants')
-        ->select('email')
+        ->select('user_id')
         ->where("mom_id", $id)
         ->get();
 
@@ -299,7 +309,7 @@ class MeetingController extends RootController
         //get task
         $tasks = DB::table('mom_action_plan')
             ->select('mom_action_plan.*','core_user.name')
-            ->leftJoin('core_user', 'mom_action_plan.pic', '=', 'core_user.email')
+            ->leftJoin('core_user', 'mom_action_plan.pic', '=', 'core_user.id')
             ->where("mom_id", $id)
             ->get();
         $data = array("viewMode" => self::VIEW_MODE_UPDATE, "users"=>$users, 
@@ -368,14 +378,18 @@ class MeetingController extends RootController
             //save participants
             $partisipants = $request->get('partisipans');
             $countPartisipants = count($request->get('partisipans'));
+            $idPartcipants = array();
             for ($i = 0; $i < $countPartisipants; $i++) 
             {
                 DB::table('mom_participants')->insert(
                     array('mom_id' => $id,
-                          'email' => $partisipants[$i])
+                          'user_id' => $partisipants[$i])
                 );
+
+                array_push($idPartcipants, $partisipants[$i]);
             }
 
+            $emailParticpants =  (new UserController)->getEmailUserbyListId($idPartcipants);
             //update google calendar
             $eventId = $request->get('idCalendar','');
             if ($eventId != '')
@@ -388,7 +402,12 @@ class MeetingController extends RootController
                 $event->endDateTime = Carbon::parse($endTime);
                 for ($i = 0; $i < $countPartisipants; $i++) 
                 {
-                    $event->addAttendee(['email' => $partisipants[$i]]);
+                    if ($emailParticpants[$partisipants[$i]] != null)
+                    {
+                        $email = $emailParticpants[$partisipants[$i]];
+                        if ($email != '')
+                            $event->addAttendee(['email' => $email]);
+                    }
                 }
                 $event->save(); 
             }

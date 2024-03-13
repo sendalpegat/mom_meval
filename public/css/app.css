@@ -112,6 +112,14 @@ body {
   overflow: hidden;
 }
 
+.card-content-header-rounded{
+  background-color:rgb(216, 216, 216);
+  color:black; 
+  padding:5px; 
+  border-radius: 3px;
+  overflow: hidden;
+}
+
 .card-content-rounded{
   border-width:1px;
   border-style:solid;
