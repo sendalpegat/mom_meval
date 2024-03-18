@@ -61,4 +61,20 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public static function getStatusName($status)
+    {
+        $nameStatus = "Unknown";
+        switch ($status)
+        {
+            case self::ACTIVE :
+                $nameStatus = "Active";
+            break;
+            case self::INACTIVE :
+                $nameStatus = "Non Active";
+            break;
+        }
+
+        return $nameStatus;
+    }
 }

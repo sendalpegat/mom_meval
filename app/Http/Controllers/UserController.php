@@ -28,14 +28,14 @@ class UserController extends RootController
             $emailUser = array();
             $nameUsers = array();
             $results = DB::table('core_user')
-            ->select('email','name')
+            ->select('id','email','name')
             ->where('status', User::ACTIVE)
             ->get()
             ->toArray();
             foreach($results as $result)
             {
                 $emailUser = $emailUser + array($result->email => $result->name);
-                array_push($nameUsers, $result->name);
+                $nameUsers = $nameUsers + array($result->name=>$result->id);
             }
 
             //get data from odoo
@@ -88,21 +88,41 @@ class UserController extends RootController
                                 $this->updateUser($update, $filter);
                             else
                             {
-                                //add user
-                                $this->addUser(
-                                    array('email' => $email,
-                                    'name' => $name,
-                                    'password' => $default_password,
-                                    'role' => $role,
-                                    'devision_id' => $departmentId,
-                                    'status' => $status,
-                                    'parent' => $parent)
-                                );
+                                if (!array_key_exists($name,$nameUsers))
+                                {
+                                    //add user
+                                    $this->addUser(
+                                        array('email' => $email,
+                                        'name' => $name,
+                                        'password' => $default_password,
+                                        'role' => $role,
+                                        'devision_id' => $departmentId,
+                                        'status' => $status,
+                                        'parent' => $parent)
+                                    );
+                                }
+                                else
+                                {
+                                    $update = [
+                                        'name' => $name, 
+                                        'status' => $status,
+                                        'devision_id' => $departmentId,
+                                        'parent' => $parent,
+                                        'email' => $email,
+                                    ];
+                                    $filter = [
+                                        'id' => $nameUsers[$name]
+                                    ];
+                                    $this->updateUser($update, $filter);
+                                }
+
+                                
                             }
                             array_push($emails,$email);
                         }
                         else
                         {
+
                             $filter = [
                                 'email' => $email
                             ];
@@ -117,7 +137,7 @@ class UserController extends RootController
                     }
                     else
                     {
-                        if (!in_array($name,$nameUsers))
+                        if (!array_key_exists($name,$nameUsers))
                         {
                             //add user
                             $this->addUser(
@@ -134,7 +154,7 @@ class UserController extends RootController
                 }
                 else
                 {
-                    if (!in_array($name,$nameUsers))
+                    if (!array_key_exists($name,$nameUsers))
                     {
                         //add user
                         $this->addUser(
@@ -205,7 +225,22 @@ class UserController extends RootController
             $query = $query->where('devision_id',$request->seachDeparment);
         } 
 
-        $users = $query->select('name','email','devision_id')
+        if ($request->seachStatus != '')
+        {
+            if ($request->seachStatus != "-1")
+            {
+                Log::error("not all");
+                $query = $query->where('status',$request->seachStatus);
+            }
+                
+        } 
+        else
+        {
+            $query = $query->where('status',User::ACTIVE);
+        }
+
+        $request->flash();
+        $users = $query->select('id','name','email','devision_id','status')
         ->sortable('name','email')
         ->paginate(10);
 
@@ -301,7 +336,6 @@ class UserController extends RootController
 
     public function show($id)
     {
-        
         $user = User::find($id);
         $data = array("viewMode" => self::VIEW_MODE_UPDATE, "user"=>$user);
         return view('user.editor', compact('data'));
@@ -319,9 +353,11 @@ class UserController extends RootController
             $id = $request->userId;
             $name = $request->name;
             $email = $request->email;
+            $status = $request->status;
             $user = User::find($id);
             $user->name = $name;
             $user->email = $email;
+            $user->status = $status;
             $user->update();  
 
             DB::commit();
@@ -370,16 +406,80 @@ class UserController extends RootController
             ];
         }
 
-
         #Update the new Password
-        User::whereId(Auth::user()->id)->update([
-            'password' => Hash::make($request->newPassword)
-        ]);
+        $this->updatePassword(Auth::user()->id, $request->newPassword);
 
         return $response = [
             'status'=>'ok',
             'success'=>true,
             'message'=>'Change password successfull'
         ];
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $this->updatePassword($request->id, $request->newPassword);
+        return $response = [
+            'status'=>'ok',
+            'success'=>true,
+            'message'=>'Change password successfull'
+        ];
+    }
+
+    private function updatePassword($userId, $newPassword)
+    {
+        User::whereId($userId)->update([
+            'password' => Hash::make($newPassword)
+        ]);
+    }
+
+    public function delete(Request $request)
+    {
+        $id = $request->id;
+        DB::beginTransaction();
+        try 
+        {
+            $delete =  User::destroy($id);
+            if ($delete)
+            { 
+                DB::commit();
+                return $response = [
+                    'status'=>'ok',
+                    'success'=>true,
+                    'message'=>'Deleted successfull'
+                ];
+            }
+            else
+            {
+                DB::rollback();
+
+                return $response = [
+                    'status'=>'ok',
+                    'success'=>false,
+                    'message'=>'Deleted fail'
+                ];
+            }   
+        }
+        catch (Exception $e) {
+            DB::rollback();
+            Log::error($e->getMessage());
+            $response = [
+                'status'=>'ok',
+                'success'=>false,
+                'message'=>'Deleted fail'
+            ];
+        }
+        catch(\Illuminate\Database\QueryException $ex)
+        {
+            DB::rollback();
+            Log::error($ex->getMessage());
+            $errorMessage = $this->getErrorMessage($ex->getCode());
+            return $response = [
+                'status'=>'ok',
+                'success'=>false,
+                'message'=>'Deleted fail. ( '.$errorMessage.' )'
+            ];
+        }
+
     }
 }

@@ -58,12 +58,11 @@ $.ajaxSetup({
                         <a href="{{route('meeting/calendar')}}" class="nav-link px-0 align-middle text-dark font-weight-bold">
                             <i class="fs-4 bi bi-calendar-week"></i> <span class="ms-1 d-none d-sm-inline">Calendar</span></a>
                     </li>
-                    <a href="{{route('user')}}" class="nav-link px-0 align-middle text-dark font-weight-bold">
-                            <i class="fs-4 bi bi-person-fill"></i> <span class="ms-1 d-none d-sm-inline">List Users</span></a>
-                    <li>
-                    
-                    </li>
                     @if (Auth::user()->role == App\Models\User::ADMIN)
+                    <li>
+                        <a href="{{route('user')}}" class="nav-link px-0 align-middle text-dark font-weight-bold">
+                            <i class="fs-4 bi bi-person-fill"></i> <span class="ms-1 d-none d-sm-inline">List Users</span></a>
+                    </li>
                     <li>
                         <a href="javascript:syncUser()" class="nav-link px-0 align-middle text-dark font-weight-bold">
                             <i class="fs-4 bi bi-person-down"></i> <span class="ms-1 d-none d-sm-inline">Sync User Odoo</span></a>
@@ -121,6 +120,7 @@ $.ajaxSetup({
             success: function(response) {
                 $('#loadingModal').modal('hide');
                 alert(response.message);
+                window.location = "{{ url('user')  }}";
             },
             error: function(response){
                 $('#loadingModal').modal('hide');

@@ -7,9 +7,9 @@
     </div>
     <br>
     <div class="row" style="margin-bottom: 10px;">
-        <div class="col-md-4">
+        <div class="col-md-2">
         </div>
-        <div class="col-md-8" style="text-align: right;">
+        <div class="col-md-10" style="text-align: right;">
         <form action="{{route('user')}}" method="GET">
             Name : <input type="text" name="seachTerm" value="{{ old('seachTerm') }}">
             Department : <select id="seachDeparment" name="seachDeparment">
@@ -23,6 +23,16 @@
                 }
                 ?>
             </select>
+            Status : 
+                <?php $oldStatus = App\Models\User::ACTIVE;
+                      if (old('seachStatus') != "")
+                        $oldStatus = old('seachStatus');
+                ?>
+                <select id="seachStatus" name="seachStatus" >
+                        <option value="-1" >All</option>
+                        <option value="{{ App\Models\User::ACTIVE}}">{{App\Models\User::getStatusName(App\Models\User::ACTIVE)}}</option>
+                        <option value="{{ App\Models\User::INACTIVE}}">{{App\Models\User::getStatusName(App\Models\User::INACTIVE)}}</option>
+                </select>
             <button class="btn btn-primary" type="submit">Search <i class="fa fa-search"></i></button>
         </form>
         </div>
@@ -33,9 +43,11 @@
     <table class="table table-striped table-bordered">
      <thead>
       <tr>
-       <th width="40%"> Name @sortablelink('name',new \Illuminate\Support\HtmlString('&#8645;'))</th>
-       <th width="30%">Email @sortablelink('email',new \Illuminate\Support\HtmlString('&#8645;'))</th>
-       <th width="30%">Department <span id="post_title_icon"></span></th>
+       <th width="30%"> Name @sortablelink('name',new \Illuminate\Support\HtmlString('&#8645;'))</th>
+       <th width="25%">Email @sortablelink('email',new \Illuminate\Support\HtmlString('&#8645;'))</th>
+       <th width="25%">Department</th>
+       <th width="10%">Status</th>
+       <th width="10%">Action</th>
       </tr>
      </thead>
      <tbody>
@@ -46,6 +58,8 @@
 </div>
 <script>
     var oldDepartment = "<?php echo $oldDepartment; ?>";
+    var oldStatus = "<?php echo $oldStatus; ?>";
     document.getElementById('seachDeparment').value = oldDepartment;
+    document.getElementById('seachStatus').value = oldStatus;
 </script>
 @endsection

@@ -6,32 +6,89 @@
 var stars =  document.getElementsByClassName("star");
 let counter = 0;
 let lastLineNumberTask = 0;
+let mapDiscuss = new Map();
     
-    $(document).ready(function () {
+    $(document).ready(function () 
+    {
         // add row for point discussed table
         $("#addrow").on("click", function () {
             var no = counter +2;
-            var newRow = $('<tr>');
-            var cols = "";
-            cols += '<td class="col-1"><span id="rate-'+no+'-1" onclick="gfg(1,this.id)" class="star">★</span><span id="rate-'+no+'-2" onclick="gfg(2,this.id)" class="star">★</span><span id="rate-'+no+'-3" onclick="gfg(3,this.id)" class="star">★</span></td>';
-            cols += '<td class="col-12"><input type="text" class="form-control" maxlength="50" id="txtRemark-'+no+'" name="txtRemark-' + no + '" onchange="onRemarkChanged(this.id,this.value)"/><input type="hidden" id="txtRate-'+no+'" name="txtRate-'+no+'" value="0"></td>';
-            cols += '<td class="col-sm-1"><button type="button" id="btnDel-'+no+'" class="ibtnDel btn btn-md btn-danger"><i class="fa fa-trash"></i></button></td>';
-            cols += '<td class="col-sm-1"><button type="button" class="btn btn-success btn-md" id="myBtn" data-bs-toggle="modal" data-bs-target="#myModal" onclick="initDialog('+-1+','+no+')">Add Task</button></td>'
-
-            newRow.append(cols);
-            $("table.order-list").append(newRow);
+            addDiscuss(no, "",0);
             counter++;
         });
-
-        $("table.order-list").on("click", ".ibtnDel", function (event) {
-            $(this).closest("tr").remove();
-            var idBtn = event.target.id;
-            removeRowTaskTable(-1,idBtn.split("-")[1]);
-            //counter -= 1
-        });
-
-       
     });
+
+    function addDiscuss(lineNumber,remark,rate)
+    {
+        let discuss = new Map();
+        discuss.set("remark",remark);
+        discuss.set("rate",rate);
+
+        mapDiscuss.set(lineNumber,discuss);
+        refreshDiscussTable();
+    }
+
+    function deleteDiscuss(lineNumber)
+    {
+        mapDiscuss.delete(lineNumber);
+        refreshDiscussTable();
+        removeRowTaskTable(-1,lineNumber);
+    }
+
+    function refreshDiscussTable()
+    {
+        $('#tbDiscuss').empty();
+        let no = 1;
+        mapDiscuss = new Map([...mapDiscuss.entries()].sort());
+        for (let [key,value] of mapDiscuss)
+        {
+            let remark = value.get("remark");
+            let rate = value.get("rate");
+
+            addRowDiscussTable(no, key, remark, rate);
+            let id = "rate-"+key+"-"+rate;
+            updateGUI(rate,id, false);
+            no++;
+        }
+    }
+
+    //add row of task table
+    function addRowDiscussTable(number,lineNumber, remark, rate)
+    {
+        var newRow = $('<tr id="row-'+lineNumber+'">');
+        var cols = "" ;
+        if (lineNumber > 1)
+            cols = getColsDiscuss(number, lineNumber, remark, rate) +"</tr>";
+        else
+            cols = getColsDiscussFirstRow(remark,rate) +"</tr>";
+
+        newRow.append(cols);
+        $("table.table.order-list").append(newRow);
+    }
+
+
+    function getColsDiscussFirstRow(remark,rate)
+    {
+        var cols = "";
+            cols += '<td class="col-1"><span id="rate-1-1" onclick="gfg(1,this.id)" class="star">★</span><span id="rate-1-2" onclick="gfg(2,this.id)" class="star">★</span><span id="rate-1-3" onclick="gfg(3,this.id)" class="star">★</span> 1 </td>';
+            cols += '<td class="col-12"><input type="text" class="form-control" maxlength="50" id="txtRemark-1" name="txtRemark-1" onchange="onRemarkChanged(this.id,this.value)" value="'+remark+'"/><input type="hidden" id="txtRate-1" name="txtRate-1" value="'+rate+'"></td>';
+            cols += '<td class="col-sm-1"></td>';
+            cols += '<td class="col-sm-1"><button type="button" class="btn btn-success btn-md" id="myBtn" data-bs-toggle="modal" data-bs-target="#myModal" onclick="initDialog('+-1+',1)">Add Task</button></td>'
+
+        return cols;
+    }
+
+    function getColsDiscuss(number, no, remark, rate)
+    {
+        var cols = "";
+            cols += '<td class="col-1"><span id="rate-'+no+'-1" onclick="gfg(1,this.id)" class="star">★</span><span id="rate-'+no+'-2" onclick="gfg(2,this.id)" class="star">★</span><span id="rate-'+no+'-3" onclick="gfg(3,this.id)" class="star">★</span> '+number+'</td>';
+            cols += '<td class="col-12"><input type="text" class="form-control" maxlength="50" id="txtRemark-'+no+'" name="txtRemark-' + no + '" onchange="onRemarkChanged(this.id,this.value)" value="'+remark+'"/><input type="hidden" id="txtRate-'+no+'" name="txtRate-'+no+'" value="'+rate+'"></td>';
+            cols += '<td class="col-sm-1"><button type="button" id="btnDel-'+no+'" class="ibtnDel btn btn-md btn-danger" onclick="deleteDiscuss('+no+')"><i class="fa fa-trash"></i></button></td>';
+            cols += '<td class="col-sm-1"><button type="button" class="btn btn-success btn-md" id="myBtn" data-bs-toggle="modal" data-bs-target="#myModal" onclick="initDialog('+-1+','+no+')">Add Task</button></td>'
+
+        return cols;
+    }
+    
 
     let notes;
     
@@ -39,6 +96,12 @@ let lastLineNumberTask = 0;
     
     // Funtion to update rating
     function gfg(n,id) 
+    {
+        updateGUI(n,id,true);
+    }
+
+    // Funtion to update rating
+    function updateGUI(n,id,updateRate) 
     {
         remove(id);
         for (let i = 0; i < stars.length; i++) {
@@ -52,6 +115,13 @@ let lastLineNumberTask = 0;
         }
 
         document.getElementById("txtRate-"+id.split("-")[1]).value = n;
+
+        if (updateRate === true)
+        {
+            let discuss = mapDiscuss.get(parseInt(id.split("-")[1]));
+            discuss.set("rate", n);
+            mapDiscuss.set(parseInt(id.split("-")[1]), discuss);
+        }
     }
     
     // To remove the pre-applied styling
@@ -196,66 +266,76 @@ let lastLineNumberTask = 0;
 
     }
 
-    //save task to map
-    // function saveTask() 
-    // {
-        
-
-    //     var added = true;
-    //     if (mapTasks.has(document.getElementById('txtLineNumber').value))
-    //         added = false;
-
-    //     var mapTask = new Map();
-        // var lineNumber = document.getElementById('txtLineNumber').value;
-        // var compPic = document.getElementById('picSelect');
-        // var picName = compPic.options[compPic.selectedIndex].text;
-        // var dueDate = document.getElementById('dueDate').value;
-        // var remark = document.getElementById('txtRemarkDialog').value;
-        // var status = document.getElementById('txtStatus').value;
-    //     mapTask.set("pic",document.getElementById('picSelect').value);
-    //     mapTask.set("notes",notes.getData());
-    //     mapTask.set("dueDate",dueDate);
-    //     mapTask.set("picName",picName);
-    //     mapTask.set("status",status);
-    //     mapTasks.set(document.getElementById('txtLineNumber').value,mapTask);
-
-    //     if (added)
-    //     {
-    //         addRowTaskTable(remark, lineNumber, picName,dueDate,notes.getData(), status);
-    //     }
-    //     else
-    //     {
-    //         updateTaskTable(lineNumber, remark, picName,dueDate,notes.getData(), status);
-    //     }
-
-    // }
-
     //when remark update then update the remark of task
     function onRemarkChanged(id,val) 
     {
         var lineNumber = id.split("-")[1];
+        let discuss = mapDiscuss.get(parseInt(lineNumber));
+        discuss.set("remark", val);
+        mapDiscuss.set(parseInt(lineNumber), discuss);
         refreshTaskTable();
     }
 
     function refreshTaskTable()
     {
-        $('#tb').empty();
+        $('#tbTask').empty();
         let no = 1;
-        for (let [key,value] of mapTasks)
+        mapDiscuss = new Map([...mapDiscuss.entries()].sort()); 
+        mapTasks = new Map([...mapTasks.entries()].sort());
+        for (let [key,value] of mapDiscuss)
         {
-            let remark = document.getElementById('txtRemark-'+key).value;
-            let tasks = mapTasks.get(key);
-            for (let [key2, value2] of tasks)
+            console.log("refreshTaskTable "+no);
+            if (mapTasks.has(key.toString()))
             {
-                console.log("task");
-                var picName = tasks.get(key2).get("picName");
-                var dueDate = tasks.get(key2).get("dueDate");
-                var notes = tasks.get(key2).get("notes");
-                var status = tasks.get(key2).get("status");
-                addRowTaskTable(no, remark, key2, key, picName,dueDate,notes, status);
-                no++;
+                let tasks = mapTasks.get(key.toString());
+                let remark = mapDiscuss.get(parseInt(key)).get("remark");
+                let isFirstTask = true;
+                for (let [key2, value2] of tasks)
+                {
+                    var picName = tasks.get(key2).get("picName");
+                    var dueDate = tasks.get(key2).get("dueDate");
+                    var notes = tasks.get(key2).get("notes");
+                    var status = tasks.get(key2).get("status");
+
+                    var number = "";
+                    if (isFirstTask)
+                        number = no;
+
+                    addRowTaskTable(number, remark, key2, key, picName,dueDate,notes, status);
+                    if (isFirstTask === true)
+                        isFirstTask = false;
+                }
+
             }
+
+            no++;
         }
+        
+        // for (let [key,value] of mapTasks)
+        // {
+            
+        //     let remark = mapDiscuss.get(parseInt(key));
+        //     let tasks = mapTasks.get(key);
+        //     let isFirstTask = true;
+        //     for (let [key2, value2] of tasks)
+        //     {
+                
+        //         var picName = tasks.get(key2).get("picName");
+        //         var dueDate = tasks.get(key2).get("dueDate");
+        //         var notes = tasks.get(key2).get("notes");
+        //         var status = tasks.get(key2).get("status");
+
+        //         var number = "";
+        //         if (isFirstTask)
+        //             number = no;
+
+        //         addRowTaskTable(number, remark, key2, key, picName,dueDate,notes, status);
+        //         if (isFirstTask === true)
+        //             isFirstTask = false;
+        //     }
+
+        //     no++;
+        // }
     }
 
     //add row of task table
@@ -276,20 +356,15 @@ let lastLineNumberTask = 0;
     {
         if (id != -1)
         {
-            var idRow = "row-"+id;
-            document.getElementById(idRow).remove();
+            deleteTask(id, indexPoint);
         }
         else
         {
-            
-            if (mapTask.has(indexPoint.toString()))
+            if (mapTasks.has(indexPoint.toString()))
             {
-                let tasks = mapTask.get(indexPoint.toString());
-                for (let [key, value] of tasks)
-                {
-                    var idRow = "row-"+key;
-                    document.getElementById(idRow).remove();
-                }
+                let tasks = mapTasks.get(indexPoint.toString());
+                mapTasks.delete(indexPoint.toString());
+                refreshTaskTable();
             }
         }
         
@@ -615,6 +690,7 @@ console.log('id '+id+","+indexPointDiscuss);
         var listTask = new Array();
         for (let [key, value] of mapTasks) 
         {
+        console.log("add "+key);
             let rate =  document.getElementById('txtRate-'+key).value;
             let remark =  document.getElementById('txtRemark-'+key).value;
 
@@ -661,29 +737,11 @@ console.log('id '+id+","+indexPointDiscuss);
 
     function setPointDiscuss(no,remark,rate)
     {
-        if (no > 1)
-        {
-            var newRow = $('<tr>');
-                var cols = "";
-                cols += '<td class="col-1"><span id="rate-'+no+'-1" onclick="gfg(1,this.id)" class="star">★</span><span id="rate-'+no+'-2" onclick="gfg(2,this.id)" class="star">★</span><span id="rate-'+no+'-3" onclick="gfg(3,this.id)" class="star">★</span></td>';
-                cols += '<td class="col-12"><input type="text" class="form-control" id="txtRemark-'+no+'" name="txtRemark-' + no + '" onchange="onRemarkChanged(this.id,this.value)" value="'+remark+'" /><input type="hidden" id="txtRate-'+no+'" name="txtRate-'+no+'" value="0"></td>';
-                cols += '<td class="col-sm-1"><button type="button" class="ibtnDel btn btn-md btn-danger"><i class="fa fa-trash"></i></button></td>';
-                cols += '<td class="col-sm-1"><button type="button" class="btn btn-success btn-md" id="myBtn" data-bs-toggle="modal" data-bs-target="#myModal" onclick="initDialog('+-1+','+no+')">Add Task</button></td>'
+        addDiscuss(parseInt(no),remark,rate);
+        if (no > counter)
+            counter = no;
 
-                newRow.append(cols);
-                $("table.order-list").append(newRow);
-                if (no -2 > counter)
-                    counter = no - 2;
-
-                var id = "rate-"+no+"-"+rate;
-                gfg(rate,id);
-        }
-        else
-        {
-            var id = "rate-1-"+rate;
-            document.getElementById('txtRemark-'+no).value = remark;
-            gfg(rate,id);
-        }
+        refreshDiscussTable();
     }
 
     function setTask(lineNumber, indexPointDiscussed, pic, picName,notes,dueDate, status, remarkTask)
@@ -852,21 +910,8 @@ console.log('set task '+lineNumber+","+indexPointDiscussed);
                         </tr>
                     </thead> 
             
-                    <tbody> 
-                        <tr>
-                            <td class="col-1" style="font-size:16px"> 
-                                <span id="rate-1-1" onclick="gfg(1,this.id)" class="star">★</span><span id="rate-1-2" onclick="gfg(2,this.id)" class="star">★</span><span id="rate-1-3" onclick="gfg(3,this.id)" class="star">★</span></td>
-                            </td>
-                            <td class="col-12">
-                                <input type="text" maxlength="50" id="txtRemark-1" name="txtRemark-1"  class="form-control"  onchange="onRemarkChanged(this.id,this.value)"/>
-                                <input type="hidden" id="txtRate-1" name="txtRate-1" value="0">
-                            </td>
-                            <td class="col-sm-1"><a class="deleteRow"></a>
-                            </td>
-                            <td class="col-sm-1"> 
-                                <button type="button" class="btn btn-success btn-md" id="myBtn" data-bs-toggle="modal" data-bs-target="#myModal" onclick="initDialog(-1,1)">Add Task</button>
-                            </td>
-                        </tr>
+                    <tbody id="tbDiscuss"> 
+                       
                     </tbody> 
                     <tfoot>
                         <tr>
@@ -892,7 +937,7 @@ console.log('set task '+lineNumber+","+indexPointDiscussed);
                             <td style="background-color:#e6e6e6; vertical-align: middle;">Action</td>
                         </tr>
                     </thead> 
-                    <tbody id="tb">
+                    <tbody id="tbTask">
                     </tbody>
             </table>
             </div>    
@@ -907,6 +952,13 @@ for ($i = 0; $i < count($pointDiscuss); $i++)
     echo '<script> setPointDiscuss('.$pointDiscuss[$i]->line_number.',\''
     .$pointDiscuss[$i]->remark.'\','.$pointDiscuss[$i]->rate.'); </script>';
 }
+
+if ($data['viewMode'] === 0)
+{
+    echo '<script> addDiscuss(1, "",0); </script>';
+}
+
+
 for ($i = 0; $i < count($tasks); $i++)
 {
     echo "<script> setTask('".$tasks[$i]->line_number
@@ -983,7 +1035,7 @@ for ($i = 0; $i < count($tasks); $i++)
         var startTime = "<?php echo $startTime; ?>";
         var endTime = "<?php echo $endTime; ?>";
         var mode = <?php echo $data["viewMode"];?>;
-        console.log("set start "+startTime+",  "+endTime);
+
         if (mode == 1)
         {
             $('#startTime').timepicker('setTime', new Date(dateMom +" "+startTime));

@@ -25,7 +25,9 @@ Route::get('actionlogout', [LoginController::class, 'actionlogout'])->name('acti
 Route::get('user', [UserController::class, 'index'])->name('user')->middleware('auth');
 Route::get('user/profile', UserController::class .'@profile')->name('user/profile')->middleware('auth');
 Route::post('/user/edit', [UserController::class ,'update'])->name('user/edit')->middleware('auth');
+Route::post('/user/delete', [UserController::class ,'delete'])->name('user/delete')->middleware('auth');
 Route::post('/user/changePassword', [UserController::class ,'changePassword'])->name('user/changePassword')->middleware('auth');
+Route::post('/user/resetPassword', [UserController::class ,'resetPassword'])->name('user/resetPassword')->middleware('auth');
 Route::get('user/{post}/update', UserController::class .'@show')->name('user/update')->middleware('auth');
 Route::get('user/sync-odoo', [UserController::class, 'syncOdoo'])->name('user/sync-odoo')->middleware('auth');
 
